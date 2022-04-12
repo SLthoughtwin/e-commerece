@@ -14,21 +14,25 @@ const productSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.String,
       ref: "Brand"
   },
-    price:Number,
+    price:String,
     image: {
       type: mongoose.Schema.Types.String,
       ref: "CloudId"
   },
-    isAvailable :{
-      type: Boolean,
-      default: true
-    },
-    rating:String,
-    description:String,
-    isApproved:{
-      type: Boolean,
-      default: false
-    },
+  quantity: {
+    type: Number,
+    default: 200
+  },
+  isAvailable :{
+    type: Boolean,
+    default: true
+  },
+  rating:String,
+  description:String,
+  isApproved:{
+    type: Boolean,
+    default: false
+  },
   },
   { timestamps: true });
 

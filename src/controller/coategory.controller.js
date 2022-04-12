@@ -1,4 +1,5 @@
 const { User, Category, Brand } = require('./../models/');
+const {deleteImageFromCloud,uploadfileInCloud} = require('../middleware/')
 
 const objectID = require('mongodb').ObjectID;
 
@@ -11,7 +12,12 @@ exports.createCategory = async (req, res) => {
         succes: false,
       });
     }
+    if(req.files.length === 1){
 
+        const image = await uploadfileInCloud(req)
+        req.body.image = image.url
+        req.body.imageId = image.public_id
+    }
     const createCategory = await Category.create(req.body);
     return res.status(200).json({
       createCategory: createCategory,
@@ -42,13 +48,20 @@ exports.updateCategory = async (req, res) => {
       });
     }
 
-    const updateCategory = await Category.updateOne(
+    if(req.files){
+        await deleteImageFromCloud(result.imageId)
+        const image = await uploadfileInCloud(req)
+        req.body.image = image.url
+        req.body.imageId = image.public_id
+    }
+
+    const updateCategory = await Category.findOneAndUpdate(
       { _id: req.params.id },
       req.body,
       { new: true },
     );
     return res.status(200).json({
-      updateCategory: updateCategory,
+      data: updateCategory,
       message: 'update brand successfully',
       succes: true,
     });
@@ -88,9 +101,10 @@ exports.showCategoryById = async (req, res) => {
       });
     }
   };
-exports.showCategory= async (req, res) => {
+exports.showCategory= async (req, res) => { 
     try {
-       const result = await Category.find();
+      const regex = new RegExp(req.query.search)
+      const result = await Category.find();
       if (!result) {
         return res.status(400).json({
           message: 'there is no Category',
@@ -120,14 +134,14 @@ exports.deleteCategory= async (req, res) => {
             });
           }
 
-       const result = await Category.findOne({_id:req.params.id});
+       const result = await Category.findOneAndDelete({_id:req.params.id});
       if (!result) {
         return res.status(400).json({
           message: 'there is no Category releted this id',
           succes: false,
         });
       }
-    
+     await deleteImageFromCloud(result.imageId)
       return res.status(200).json({
         createBrand: result,
         message: 'delete Category successfully',

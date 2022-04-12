@@ -19,6 +19,9 @@ const { updateUser } = require('.');
 const { result } = require('lodash');
 // const { SellerProfile, User } = require('../models/');
 
+
+
+
 exports.signUPSeller = async (req, res) => {
   try {
     const verifyMail = verifyEmail(req);

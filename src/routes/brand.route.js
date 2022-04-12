@@ -8,7 +8,7 @@ const {
     showBrandById,
     deleteBrand,
   } = require('../controller');
-const {accessTokenVarify,checkRole,uploadImage1,uploadfile} = require('../middleware')
+const {accessTokenVarify,checkRole,uploadImage1,uploadfile,brandValidation} = require('../middleware')
 
 /**
  * @swagger
@@ -19,13 +19,13 @@ const {accessTokenVarify,checkRole,uploadImage1,uploadfile} = require('../middle
  *              required :
  *                  - brand_name
  *                  - description
- *                  - logo
+ *                  - avatar
  *              properties:
  *                  brand_name:
  *                      type : string
  *                  description :
  *                      type : string
- *                  logo:
+ *                  avatar:
  *                      type: string
  *                      format: binary
  *              example :
@@ -54,7 +54,7 @@ const {accessTokenVarify,checkRole,uploadImage1,uploadfile} = require('../middle
  *
  *
  */
-router.post('/',uploadImage1,accessTokenVarify,checkRole('admin'),uploadfile,createBrand)
+router.post('/',uploadImage1,accessTokenVarify,checkRole('admin'),brandValidation,createBrand)
 
 /**
  * @swagger
@@ -79,7 +79,7 @@ router.post('/',uploadImage1,accessTokenVarify,checkRole('admin'),uploadfile,cre
  *
  *
  */
-router.put('/',uploadImage1,accessTokenVarify,checkRole('admin'),uploadfile,updateBrand)
+router.put('/:id',uploadImage1,accessTokenVarify,checkRole('admin'),brandValidation,updateBrand)
 
 
 /**
@@ -134,6 +134,6 @@ router.get('/:id',accessTokenVarify,checkRole('admin'),showBrandById)
  *
  *
  */
-router.delete('/',accessTokenVarify,checkRole('admin'),deleteBrand)
+router.delete('/:id',accessTokenVarify,checkRole('admin'),deleteBrand)
 
 module.exports = router;

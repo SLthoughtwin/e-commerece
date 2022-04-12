@@ -8,7 +8,7 @@ const {
   showCategoryById,
   deleteCategory,
 } = require('../controller');
-const { accessTokenVarify, checkRole ,categoryValidation} = require('../middleware');
+const { accessTokenVarify, checkRole ,categoryValidation,uploadImage1} = require('../middleware');
 
 
 /**
@@ -20,13 +20,13 @@ const { accessTokenVarify, checkRole ,categoryValidation} = require('../middlewa
  *              required :
  *                  - category_name
  *                  - description
- *                  - logo
+ *                  - avatar
  *              properties:
  *                  category_name:
  *                      type : string
  *                  description :
  *                      type : string
- *                  logo:
+ *                  avatar:
  *                      type: string
  *                      format: binary
  *              example :
@@ -56,7 +56,7 @@ const { accessTokenVarify, checkRole ,categoryValidation} = require('../middlewa
  *
  */
 
-router.post('/',accessTokenVarify,checkRole('admin'),categoryValidation,createCategory);
+router.post('/',uploadImage1,accessTokenVarify,checkRole('admin'),categoryValidation,createCategory);
 
 /**
  * @swagger
@@ -81,7 +81,7 @@ router.post('/',accessTokenVarify,checkRole('admin'),categoryValidation,createCa
  *
  *
  */
-router.put('/',accessTokenVarify, checkRole('admin'), categoryValidation,updateCategory);
+router.put('/:id',uploadImage1,accessTokenVarify, checkRole('admin'), categoryValidation,updateCategory);
 
 /**
  * @swagger
@@ -136,6 +136,6 @@ router.get('/:id', accessTokenVarify, checkRole('admin'), showCategoryById);
  *
  *
  */
-router.delete('/', accessTokenVarify, checkRole('admin'), deleteCategory);
+router.delete('/:id', accessTokenVarify, checkRole('admin'), deleteCategory);
 
 module.exports = router;

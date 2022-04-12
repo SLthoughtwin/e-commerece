@@ -11,7 +11,10 @@ const {
   deleteImageFromCloud,
   checkFilter,
   productUpdateValidation,
-  uploadImage1
+  uploadImage1,
+  uploadfileInCloud,
+  addCartValidation,
+  incrementCartValidation
 } = require('./seller.middleware');
 const { adminValidation,categoryValidation,brandValidation } = require('./admin.middleware');
 
@@ -31,5 +34,8 @@ module.exports = {
   productUpdateValidation,
   categoryValidation,
   brandValidation,
-  uploadImage1
+  uploadImage1,
+  uploadfileInCloud,
+  addCartValidation,
+  incrementCartValidation
 };

@@ -13,13 +13,20 @@ const {
   addressRoute,
   productRoute,
   brandRoute,
-  categoryRoute
+  categoryRoute,
+  cartRoute
 } = require('./routes/');
 const swaggerUI = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
 const { logger } = require('./shared/');
 const { errorHandler, checkvar } = require('./config/errorhandler');
-
+const rateLimit = require('express-rate-limit')
+const limiter = rateLimit({
+	windowMs: 60 * 60 * 1000, 
+	max: 10, 
+	standardHeaders: true, 
+	legacyHeaders: false, 
+})
 const options = {
   definition: {
     openapi: '3.0.0',
@@ -28,7 +35,7 @@ const options = {
       version: '2.0',
       description: 'this is another task on swagger',
     },
-
+    
     components: {
       securitySchemes: {
         jwt: {
@@ -44,7 +51,7 @@ const options = {
         jwt: [],
       },
     ],
-
+    
     servers: [
       {
         url: 'http://localhost:8080',
@@ -53,11 +60,22 @@ const options = {
   },
   apis: [`${__dirname}/routes/*.js`],
 };
-
 const spacs = swaggerJsDoc(options);
 const app = express();
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(spacs));
+app.use(limiter)
+// app.use(function(req, res, next){
+//   res.setTimeout(5000, function(){
+//       console.log('Request has timed out.');
+//           res.status(408).json({
+//             message : "Request has timed out.",
+//             success: false
+//           });
+//       });
 
+//   next();
+// });
+// app.use(setTimeout)
 app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 app.use(express.json())
@@ -70,6 +88,8 @@ app.use('/user/address/', addressRoute);
 app.use('/v1/product/',productRoute);
 app.use('/v1/brand',brandRoute)
 app.use('/v1/category',categoryRoute)
+app.use('/v1/cart/',cartRoute)
+
 
 
 app.use((req, res, next) => {

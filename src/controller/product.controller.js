@@ -137,8 +137,7 @@ exports.updateProduct = async (req, res) => {
 
 exports.showProduct = async (req, res) => {
   try {
-    // console.log('==================>');
-    const user = await User.findOne({ _id: req.userid });
+    const user = await User.find({_id : req.userid});
     if (!user) {
       return res.status(400).json({
         message: 'inavlid id',
@@ -148,14 +147,16 @@ exports.showProduct = async (req, res) => {
 
     const { page = 1, limit = 5 } = req.query;
     const filter = checkFilter(req, res);
-    // console.log('===========>',filter)
+    console.log(filter)
     if (filter === false) {
       return res.status(404).json({
         message: 'enter valid fields',
       });
       }else{
         const allfields = productFields(req);
-        const result = await Product.find(filter, allfields)
+        const regex = new RegExp(req.query.search,'i')
+        const searchObj ={$or:[{"title":regex},{"description":regex},{"price":regex}]} 
+        const result = await Product.find(Object.assign(filter,searchObj),allfields)
           .limit(limit * 1)
           .skip((page - 1) * limit)
           .sort({ createdAt: -1 })

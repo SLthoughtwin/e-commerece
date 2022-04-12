@@ -3,7 +3,8 @@ const categorySchema = new mongoose.Schema(
   {
     category_name: String,
     description: String,
-    logo:String,
+    image:String,
+    imageId:String,
     isActive:{type:Boolean,
       default:true}
   },

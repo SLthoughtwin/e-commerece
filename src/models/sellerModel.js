@@ -71,7 +71,7 @@ userSchema.pre('save', async function (next) {
   }
   next();
 });
-
+userSchema.index( { subject: "text", dummy:"text" } )
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;

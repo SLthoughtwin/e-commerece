@@ -2,17 +2,23 @@ const { User, Category, Brand } = require('./../models/');
 
 const objectID = require('mongodb').ObjectID;
 
+const { uploadfile ,uploadfileInCloud,deleteImageFromCloud} = require('../middleware/')
+
 exports.createBrand = async (req, res) => {
   try {
-      console.log('============>',req.imgarray.image_url)
-    const result = await Brand.findOne({ brand_name: req.body.brand_name });
-    if (result) {
-      return res.status(400).json({
-        message: 'this brand already exist',
-        succes: false,
-      });
-    }
+      const result = await Brand.findOne({ brand_name: req.body.brand_name });
+      if (result) {
+          return res.status(400).json({
+              message: 'this brand already exist',
+              succes: false,
+            });
+        }
+        if(req.files.length === 1){
 
+            const image = await uploadfileInCloud(req)
+             req.body.image = image.url
+             req.body.imageId = image.public_id
+        }
     const createBrand = await Brand.create(req.body);
     return res.status(200).json({
       createBrand: createBrand,
@@ -42,14 +48,21 @@ exports.updateBrand = async (req, res) => {
         succes: false,
       });
     }
+    if(req.files){
+       await deleteImageFromCloud(result.imageId)
 
-    const updateBrand = await Brand.updateOne(
+       const image = await uploadfileInCloud(req)
+         req.body.image = image.url
+         req.body.imageId = image.public_id
+   }
+
+    const updateBrand = await Brand.findOneAndUpdate(
       { _id: req.params.id },
       req.body,
       { new: true },
     );
     return res.status(200).json({
-      createBrand: updateBrand,
+      data: updateBrand,
       message: 'update brand successfully',
       succes: true,
     });
@@ -88,10 +101,12 @@ exports.showBrandById = async (req, res) => {
         succes: false,
       });
     }
-  };
+};
 exports.showBrand= async (req, res) => {
     try {
-       const result = await Brand.find();
+      const regex = new RegExp(req.query.search)
+      const result = await Brand.find();
+      // {$or:[{"brand_name":regex},{"description":regex}]}
       if (!result) {
         return res.status(400).json({
           message: 'there is no brand',
@@ -110,7 +125,7 @@ exports.showBrand= async (req, res) => {
         succes: false,
       });
     }
-  };
+};
 exports.deleteBrand= async (req, res) => {
     try {
        
@@ -121,14 +136,14 @@ exports.deleteBrand= async (req, res) => {
             });
           }
 
-       const result = await Brand.findOne({_id:req.params.id});
+       const result = await Brand.findOneAndDelete({_id:req.params.id});
       if (!result) {
         return res.status(400).json({
           message: 'there is no brand releted this id',
           succes: false,
         });
       }
-    
+      await deleteImageFromCloud(result.imageId)
       return res.status(200).json({
         createBrand: result,
         message: 'delete brand successfully',
@@ -140,4 +155,4 @@ exports.deleteBrand= async (req, res) => {
         succes: false,
       });
     }
-  };
+};

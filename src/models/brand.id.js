@@ -3,7 +3,8 @@ const brandSchema = new mongoose.Schema(
   {
     brand_name: String,
     description: String,
-    logo:String,
+    image:String,
+    imageId:String,
     isActive:{type:Boolean,
     default:true}
   },

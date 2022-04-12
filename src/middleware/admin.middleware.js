@@ -24,7 +24,7 @@ exports.brandValidation = (req, res, next) => {
     const JoiSchema = Joi.object({
       brand_name: Joi.string().required().trim(),
       description: Joi.string().trim(),
-      logo: Joi.string()
+      avatar: Joi.string()
     }).or('brand_name');
     return JoiSchema.validate(user);
   };
@@ -45,7 +45,7 @@ exports.categoryValidation = (req, res, next) => {
     const JoiSchema = Joi.object({
       category_name: Joi.string().trim().required(),
       description: Joi.string().trim(),
-      logo: Joi.string()
+      avatar: Joi.string()
     }).or('category_name');
     return JoiSchema.validate(user);
   };

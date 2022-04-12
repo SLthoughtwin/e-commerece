@@ -160,7 +160,7 @@ exports.sendMsgBymail = (email) => {
     from: mailEmail,
     to: email,
     subject: 'testing and testing',
-    text: 'your application approved by admin now you can login',
+    text: `hello mr. User`,
   };
 
   transporter
@@ -220,6 +220,7 @@ exports.productFields = (req) => {
         brand_id: 1,
         image: 1,
         price:1,
+        title:1
       });
     }
   } catch (error) {

@@ -52,6 +52,12 @@ const {
   deleteBrand,
 } = require('./brand.controller');
 
+const { 
+  showCart, 
+  createCart, 
+  deleteCart,
+  IncreAndDecre } = require('./addCart.controller');
+
 module.exports = {
   sellerVarified,
   signUPSeller,
@@ -90,4 +96,8 @@ module.exports = {
   showBrandById,
   showBrand,
   deleteBrand,
+  showCart, 
+  createCart, 
+  deleteCart,
+  IncreAndDecre
 };

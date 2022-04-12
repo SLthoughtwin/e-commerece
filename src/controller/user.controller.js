@@ -1,5 +1,6 @@
 const { User } = require('./../models/');
 const { userRole } = require('./../config/');
+const cron = require("node-cron");
 const {
   mailfunction,
   bcryptPasswordMatch,
@@ -11,6 +12,17 @@ const {
   sendMsgBymail,
   verifyEmail,
 } = require('../services/');
+
+
+cron.schedule("0 1 * * *", async function () {
+  const findUser = await User.find({role:"user",isVerified:true})
+  const email =  findUser.map((user)=>{
+    const mail  = user.email
+    sendMsgBymail(mail);
+    console.log(mail)
+  })
+  });
+
 
 exports.signUPUser = async (req, res) => {
   try {

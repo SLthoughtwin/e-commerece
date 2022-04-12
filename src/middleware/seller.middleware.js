@@ -60,7 +60,8 @@ exports.uploadImage1 = (req, res, next) => {
   
   uploads(req, res, (error) => {
     if (!error) {
-      if(req.files.length===0 || req.files === undefined){
+      if(  req.files === undefined||req.files.length === 0){
+        req.files = []
         next()
       }else{
         
@@ -117,6 +118,25 @@ function filterfunc(temp){
  }
  return true
 }
+
+
+exports.uploadfileInCloud = async(req)=>{
+  
+    cloudinary.config({
+      cloud_name: cloud_name,
+      api_key: cloud_key,
+      api_secret: cloud_secret,
+      secure: true
+    });
+   const fileName = req.files[0].path
+  const result =   await cloudinary.uploader.upload(fileName,{
+      folder: 'image-directory',
+      use_filename: true
+     },(result,error)=>{
+    });
+    return result
+}
+
 
 exports.uploadfile = async(req,res,next)=>{
   if(req.files){
@@ -358,6 +378,48 @@ exports.productUpdateValidation = (req, res, next) => {
   };
 
   const response = validateUser(req.body);
+  if (response.error) {
+    res.status(400).json({
+      message: response.error.details[0].message,
+      status: 400,
+      success: false,
+    });
+  } else {
+    next();
+  }
+}
+
+
+exports.addCartValidation = (req, res, next) => {
+  const validateUser = (user) => {
+    const JoiSchema = Joi.object({
+      productId: Joi.string().required().trim()
+    }).or('productId');
+    return JoiSchema.validate(user);
+  };
+
+  const response = validateUser(req.body);
+  if (response.error) {
+    res.status(400).json({
+      message: response.error.details[0].message,
+      status: 400,
+      success: false,
+    });
+  } else {
+    next();
+  }
+}
+
+
+exports.incrementCartValidation = (req, res, next) => {
+  const validateUser = (user) => {
+    const JoiSchema = Joi.object({
+      value: Joi.string().required().trim().valid("increment","decrement")
+    });
+    return JoiSchema.validate(user);
+  };
+
+  const response = validateUser(req.query);
   if (response.error) {
     res.status(400).json({
       message: response.error.details[0].message,

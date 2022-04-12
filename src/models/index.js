@@ -4,6 +4,7 @@ const SellerProfile = require('./seller.profile')
 const {Product,CloudId} = require('./product.model')
 const Category = require('./category_id')
 const Brand = require('./brand.id')
+const addCart = require('./addToCart.model')
 
 module.exports = {
   User,
@@ -12,5 +13,6 @@ module.exports = {
   Product,
   Category,
   Brand,
-  CloudId
+  CloudId,
+  addCart
 };
