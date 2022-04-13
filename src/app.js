@@ -6,6 +6,8 @@ const { port, connection } = require('./config/index');
 const {hbs} = require("hbs");
 const path = require('path')
 const bodyParser = require('body-parser')
+const Redis = require("ioredis");
+const redis = new Redis();
 const {
   adminRoute,
   sellerRoute,
@@ -64,18 +66,18 @@ const spacs = swaggerJsDoc(options);
 const app = express();
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(spacs));
 app.use(limiter)
-// app.use(function(req, res, next){
-//   res.setTimeout(5000, function(){
-//       console.log('Request has timed out.');
-//           res.status(408).json({
-//             message : "Request has timed out.",
-//             success: false
-//           });
-//       });
+app.use(function(req, res, next){
+  res.setTimeout(12000, function(){
+      console.log('Request has timed out.');
+          res.status(408).json({
+            message : "Request has timed out.",
+            success: false
+          });
+      });
 
-//   next();
-// });
-// app.use(setTimeout)
+  next();
+});
+app.use(setTimeout)
 app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 app.use(express.json())

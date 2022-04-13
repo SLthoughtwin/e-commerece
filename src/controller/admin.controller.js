@@ -91,10 +91,7 @@ exports.getAllseller = async (req, res) => {
   const { page = 1, limit = 10} = req.query;
   const { email = '' } = req.body;
   const allfields = fields(req);
-  const result = await User.find(
-    { email: { $regex: email, $options: '$i' }, role: seller },
-    allfields,
-  )
+  const result = await User.find({ email: { $regex: email, $options: '$i' }, role: seller },allfields,)
     .limit(limit * 1)
     .skip((page - 1) * limit)
     .sort({ createdAt: -1 });
@@ -105,58 +102,3 @@ exports.getAllseller = async (req, res) => {
     result: result,
   });
 };
-
-
-exports.createCategory = async (req,res)=>{
-  try{
-    const result = await Category.findOne({ category_name: req.body.category_name});
-    console.log(">>>>>>>>>>>>", req.body);
-    if (result) {
-      return res.status(400).json({
-        message: 'this category allready exist',
-        succes: false,
-      });
-    }
-    
-    const createCategory = await Category.create(req.body)
-    return res.status(200).json({
-      createCategory:createCategory,
-        message: 'create category successfully',
-        succes: true,
-    });
-   
-  }catch(error){
-      console.log(error)
-      return res.status(400).json({
-          message: 'Id lenght must be 24 character/invalid id format',
-          succes: false,
-        });
-  }
-}
-
-
-exports.createBrand = async (req,res)=>{
-  try{
-    const result = await Brand.findOne({ brand_name: req.body.brand_name});
-    if (result) {
-      return res.status(400).json({
-        message: 'this brand already exist',
-        succes: false,
-      });
-    }
-    
-    const createBrand= await Brand.create(req.body)
-    return res.status(200).json({
-      createBrand:createBrand,
-        message: 'create brand successfully',
-        succes: true,
-    });
-   
-  }catch(error){
-      console.log(error)
-      return res.status(400).json({
-          message: 'Id lenght must be 24 character/invalid id format',
-          succes: false,
-        });
-  }
-}

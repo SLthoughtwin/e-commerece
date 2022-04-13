@@ -88,6 +88,11 @@ router.put('/:id',uploadImage1,accessTokenVarify,checkRole('admin'),brandValidat
  *   get:
  *     summary: show brand
  *     tags: [brand]
+ *     parameters:
+ *      - in: query
+ *        name: search
+ *        schema:
+ *          type: string
  *     responses:
  *       200:
  *         description: get all Product  successfully

@@ -1,5 +1,5 @@
 const { User, Product, CloudId, Brand, Category } = require('./../models/');
-const objectID = require("mongodb").ObjectID
+const objectID = require("mongodb").ObjectId
 const {
   uploadImage,
   uploadfile,
@@ -147,7 +147,7 @@ exports.showProduct = async (req, res) => {
 
     const { page = 1, limit = 5 } = req.query;
     const filter = checkFilter(req, res);
-    console.log(filter)
+    // console.log(filter)
     if (filter === false) {
       return res.status(404).json({
         message: 'enter valid fields',

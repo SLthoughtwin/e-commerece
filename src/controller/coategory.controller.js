@@ -103,8 +103,12 @@ exports.showCategoryById = async (req, res) => {
   };
 exports.showCategory= async (req, res) => { 
     try {
-      const regex = new RegExp(req.query.search)
-      const result = await Category.find();
+      const { page = 1, limit = 5 } = req.query;
+      const regex = new RegExp(req.query.search,'i')
+      const result = await Category.find({$or:[{"category_name":regex}]})
+       .limit(limit * 1)
+       .skip((page - 1) * limit)
+       .sort({ createdAt: -1 });
       if (!result) {
         return res.status(400).json({
           message: 'there is no Category',

@@ -1,5 +1,5 @@
 const express = require('express');
-const { createCart, showCart, deleteCart,IncreAndDecre} = require('../controller/');
+const { createCart, showCart, deleteCart,IncreAndDecre,deleteAllCart} = require('../controller/');
 const router = express();
 
 const { addCartValidation,accessTokenVarify,checkRole,incrementCartValidation} = require('../middleware')
@@ -76,6 +76,26 @@ router.get('/',accessTokenVarify,checkRole('user'),showCart)
 router.delete('/:id',accessTokenVarify,checkRole('user'),deleteCart)
 
 
+
+/**
+ * @swagger
+ * /v1/cart/deleteAll/{id}:
+ *   delete:
+ *     summary: delete Allcart 
+ *     tags: [cart]
+ *     parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: string
+ *     responses:
+ *       200:
+ *         description: delete Allcart successfully
+ *
+ */
+ router.delete('/deleteAll/:id',accessTokenVarify,checkRole('user'),deleteAllCart)
+
+
 /**
  * @swagger
  * /v1/cart/{id}:
@@ -97,6 +117,9 @@ router.delete('/:id',accessTokenVarify,checkRole('user'),deleteCart)
  *
  */
 router.put('/:id',accessTokenVarify,checkRole('user'),incrementCartValidation,IncreAndDecre)
+
+
+
 
 
 module.exports = router

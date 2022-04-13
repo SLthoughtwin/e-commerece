@@ -89,6 +89,11 @@ router.put('/:id',uploadImage1,accessTokenVarify, checkRole('admin'), categoryVa
  *   get:
  *     summary: show category 
  *     tags: [category]
+ *     parameters:
+ *      - in: query
+ *        name: search
+ *        schema:
+ *          type: string
  *     responses:
  *       200:
  *         description: show category successfully

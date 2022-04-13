@@ -56,7 +56,8 @@ const {
   showCart, 
   createCart, 
   deleteCart,
-  IncreAndDecre } = require('./addCart.controller');
+  IncreAndDecre,
+  deleteAllCart } = require('./addCart.controller');
 
 module.exports = {
   sellerVarified,
@@ -99,5 +100,6 @@ module.exports = {
   showCart, 
   createCart, 
   deleteCart,
-  IncreAndDecre
+  IncreAndDecre,
+  deleteAllCart
 };

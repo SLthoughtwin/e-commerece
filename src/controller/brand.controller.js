@@ -104,8 +104,12 @@ exports.showBrandById = async (req, res) => {
 };
 exports.showBrand= async (req, res) => {
     try {
-      const regex = new RegExp(req.query.search)
-      const result = await Brand.find();
+      const { page = 1, limit = 5 } = req.query;
+      const regex = new RegExp(req.query.search,'i')
+      const result = await Brand.find({$or:[{"brand_name":regex}]})
+       .limit(limit * 1)
+       .skip((page - 1) * limit)
+       .sort({ createdAt: -1 });
       // {$or:[{"brand_name":regex},{"description":regex}]}
       if (!result) {
         return res.status(400).json({
