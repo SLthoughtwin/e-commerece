@@ -2,6 +2,8 @@ const {
   verifiedByAdmin,
   adminLogin,
   getAllseller,
+  deleteSellerByAdmin,
+  getAllUser,
 } = require('./admin.controller');
 const {
   sellerVarified,
@@ -52,12 +54,21 @@ const {
   deleteBrand,
 } = require('./brand.controller');
 
-const { 
-  showCart, 
-  createCart, 
+const {
+  showCart,
+  createCart,
   deleteCart,
   IncreAndDecre,
-  deleteAllCart } = require('./addCart.controller');
+  deleteAllCart,
+} = require('./addCart.controller');
+const { 
+  getOrder,
+   cancelOrder,
+    getAllOrder,
+    getOrderById,
+    changeStatus } = require('./order.controller');
+
+const{deleteReview,createReview} = require('./review.controller');
 
 module.exports = {
   sellerVarified,
@@ -97,9 +108,18 @@ module.exports = {
   showBrandById,
   showBrand,
   deleteBrand,
-  showCart, 
-  createCart, 
+  showCart,
+  createCart,
   deleteCart,
   IncreAndDecre,
-  deleteAllCart
+  deleteAllCart,
+  deleteSellerByAdmin,
+  getAllUser,
+  getOrder,
+  cancelOrder,
+  getAllOrder,
+  getOrderById,
+  changeStatus,
+  deleteReview,
+  createReview
 };

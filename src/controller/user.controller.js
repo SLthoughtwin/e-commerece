@@ -101,6 +101,7 @@ exports.userLogin = async (req, res) => {
               const accesstoken = await accessToken(userId);
               const refreshtoken = await refreshToken(userId);
               return res.status(200).json({
+                name: result.fullName,
                 success: true,
                 accToken: accesstoken,
                 refreshtoken: refreshtoken,
@@ -153,6 +154,7 @@ exports.userLogin = async (req, res) => {
                   const refreshtoken = await refreshToken(userId);
                   return res.status(200).json({
                     success: true,
+                    name:result.fullName,
                     accessToken: accesstoken,
                     refreshtoken: refreshtoken,
                     message: 'login successfully',

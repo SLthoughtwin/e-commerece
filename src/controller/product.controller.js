@@ -257,7 +257,7 @@ exports.deleteProcduct = async (req, res) => {
     });
   } catch (error) {
     return res.status(400).json({
-      message: 'Id lenght must be 24 character/invalid id format',
+      message: error.message,
       succes: false,
     });
   }

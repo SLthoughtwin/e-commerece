@@ -1,5 +1,6 @@
 require('dotenv').config();
 const { connection } = require('../config/dbconnection');
+const option  = require('./swagger')
 const port = process.env.PORT;
 const mailEmail = process.env.EMAIL;
 const mailPassword = process.env.PASSWORD;
@@ -29,5 +30,6 @@ module.exports = {
   userRole,
   cloud_name,
   cloud_key,
-  cloud_secret
+  cloud_secret,
+  option
 };

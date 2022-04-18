@@ -16,7 +16,7 @@ const {
   addCartValidation,
   incrementCartValidation
 } = require('./seller.middleware');
-const { adminValidation,categoryValidation,brandValidation } = require('./admin.middleware');
+const { adminValidation,categoryValidation,brandValidation,orderValidation } = require('./admin.middleware');
 
 module.exports = {
   signUpSellerValidation,
@@ -37,5 +37,6 @@ module.exports = {
   uploadImage1,
   uploadfileInCloud,
   addCartValidation,
-  incrementCartValidation
+  incrementCartValidation,
+  orderValidation
 };

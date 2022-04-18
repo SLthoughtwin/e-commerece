@@ -1,7 +1,7 @@
 const { User, Category, Brand } = require('./../models/');
 const {deleteImageFromCloud,uploadfileInCloud} = require('../middleware/')
 
-const objectID = require('mongodb').ObjectID;
+const objectID = require('mongodb').ObjectId;
 
 exports.createCategory = async (req, res) => {
   try {

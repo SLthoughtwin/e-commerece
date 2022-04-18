@@ -12,7 +12,7 @@ const { adderssValidation } = require('../middleware/');
 
 /**
  * @swagger
- * /user/address/create:
+ * /user/address:
  *   post:
  *     summary: create new address
  *     tags: [address]
@@ -22,8 +22,6 @@ const { adderssValidation } = require('../middleware/');
  *          application/json:
  *            schema:
  *                required:
- *                   - fullName
- *                   - userid
  *                   - phone
  *                   - country
  *                   - state
@@ -34,8 +32,6 @@ const { adderssValidation } = require('../middleware/');
  *                   - landmark
  *                   - addressType
  *                properties:
- *                   fullname:
- *                      type:string
  *                   phone:
  *                      type:number
  *                   country:
@@ -55,7 +51,6 @@ const { adderssValidation } = require('../middleware/');
  *                   addressType:
  *                      type: string
  *                example:
- *                   fullName: sourabh
  *                   phone: "9546845896"
  *                   country: india
  *                   state: MP
@@ -74,27 +69,19 @@ const { adderssValidation } = require('../middleware/');
  *
  */
 
-router.post('/create', adderssValidation, createAddress);
+router.post('/:id', adderssValidation, createAddress);
 
 /**
  * @swagger
- * /user/address/show:
- *   post:
+ * /user/address/show/{id}:
+ *   get:
  *     summary: find address
  *     tags: [address]
- *     requestBody:
- *         required: true
- *         content:
- *          application/json:
- *            schema:
- *                required:
- *                   - id
- *                properties:
- *                   id:
- *                      type: string
- *                example:
- *                   id: dfsf9r998s9f8fdfd4
- *
+ *     parameters:
+ *      - in: path
+ *        name: id
+ *        schema:
+ *          type: string
  *     responses:
  *       200:
  *         description: find address successfully
@@ -102,12 +89,12 @@ router.post('/create', adderssValidation, createAddress);
  *
  *
  */
-router.post('/show', showAddress);
+router.get('/show/:id', showAddress);
 
 /**
  * @swagger
- * /user/address/update:
- *   post:
+ * /user/address:
+ *   put:
  *     summary: update address
  *     tags: [address]
  *     requestBody:
@@ -122,7 +109,6 @@ router.post('/show', showAddress);
  *                      type:string
  *                example:
  *                   id: rjf484898ewfs8ffdr4
- *
  *     responses:
  *       200:
  *         description: update address successfully
@@ -130,12 +116,12 @@ router.post('/show', showAddress);
  *
  *
  */
-router.post('/update', updateAddress);
+router.put('/', updateAddress);
 
 /**
  * @swagger
- * /user/address/delete:
- *   post:
+ * /user/address:
+ *   delete:
  *     summary: delete address
  *     tags: [address]
  *     requestBody:
@@ -158,7 +144,7 @@ router.post('/update', updateAddress);
  *
  *
  */
-router.post('/delete', deleteAddress);
+router.delete('/', deleteAddress);
 
 router.get('/axios', axiosTest);
 

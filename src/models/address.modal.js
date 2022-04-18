@@ -4,7 +4,6 @@ const { crypto_string } = require('../services/');
 
 const addressSchema = new mongoose.Schema(
   {
-    fullName: String,
     phone: {
       type: String,
     },

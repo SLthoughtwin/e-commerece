@@ -185,7 +185,7 @@ exports.deleteImageFromCloud = async(cloud_id)=>{
     const JoiSchema = Joi.object({
       fullName: Joi.string().min(3).max(30).required().trim(),
       email: Joi.string().email().required().trim(),
-      phone: Joi.number().required(),
+      phone: Joi.number(),
       password: Joi.string().min(6).max(30).required().trim(),
     }).or('fullName', 'email', 'phone');
     return JoiSchema.validate(user);
@@ -208,7 +208,7 @@ exports.deleteImageFromCloud = async(cloud_id)=>{
         phone: Joi.string().trim(),
         email: Joi.string().email().min(5).max(50).trim(),
         password: Joi.string().trim(),
-      }).options({ abortEarly: false });
+      }).or("phone","email");
       return JoiSchema.validate(user);
     };
     const response = loginUser(req.body);
@@ -276,16 +276,16 @@ exports.deleteImageFromCloud = async(cloud_id)=>{
 exports.adderssValidation = (req, res, next) => {
     const validateUser = (user) => {
       const JoiSchema = Joi.object({
-        fullName: Joi.string().max(30).required().trim(),
+        fullName: Joi.string().max(30).required(),
         phone: Joi.string().required(),
-        country: Joi.string().required().trim(),
-        state: Joi.string().required().trim(),
-        city: Joi.string().required().trim(),
-        street: Joi.string().required().trim(),
-        pincode: Joi.number().required().trim(),
-        landmark: Joi.string().required().trim(),
-        houseNo: Joi.string().required().trim(),
-        addressType: Joi.string().required().trim(),
+        country: Joi.string().required(),
+        state: Joi.string().required(),
+        city: Joi.string().required(),
+        street: Joi.string().required(),
+        pincode: Joi.number().required(),
+        landmark: Joi.string().required(),
+        houseNo: Joi.string().required(),
+        addressType: Joi.string().required(),
       }).or('fullName', 'phone');
       return JoiSchema.validate(user);
     };

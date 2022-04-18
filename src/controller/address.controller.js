@@ -1,8 +1,18 @@
 const { UserAddress, User } = require('../models/');
 const lodash = require('lodash');
 const axios = require('axios').default;
+const objectID = require('mongodb').ObjectId;
 
 exports.createAddress = async (req, res) => {
+
+  try{
+
+  if (objectID.isValid(req.params.id) === false) {
+    return res.status(400).json({
+      message: 'id must be correct format',
+      succes: false,
+    });
+  }
   const result = await User.findOne({ phone: req.body.phone });
   if (!result) {
     return res.status(400).json({
@@ -27,10 +37,23 @@ exports.createAddress = async (req, res) => {
       succes: true,
     });
   }
+}catch(error){
+  return res.status(400).json({
+    message: error.message,
+    succes: false,
+  });
+}
 };
 
 exports.updateAddress = async (req, res) => {
   try {
+
+    if (objectID.isValid(req.body.id) === false) {
+      return res.status(400).json({
+        message: 'id must be correct format',
+        succes: false,
+      });
+    }
     const id = req.body.id;
     const result = await UserAddress.findOneAndUpdate({ _id: id }, req.body, {
       new: true,
@@ -48,7 +71,7 @@ exports.updateAddress = async (req, res) => {
     });
   } catch (error) {
     return res.status(400).json({
-      message: 'Id lenght must be 24 character/invalid id format ',
+      message: error.message,
       succes: false,
     });
   }
@@ -56,6 +79,13 @@ exports.updateAddress = async (req, res) => {
 
 exports.showAddress = async (req, res) => {
   try {
+
+    if (objectID.isValid(req.body.id) === false) {
+      return res.status(400).json({
+        message: 'id must be correct format',
+        succes: false,
+      });
+    }
     const user = await User.findOne({ _id: req.body.id });
     if (!user) {
       return res.status(400).json({
@@ -71,7 +101,7 @@ exports.showAddress = async (req, res) => {
     });
   } catch (error) {
     return res.status(400).json({
-      message: 'Id lenght must be 24 character/invalid id format',
+      message: error.message,
       succes: false,
     });
   }
@@ -79,6 +109,12 @@ exports.showAddress = async (req, res) => {
 
 exports.deleteAddress = async (req, res) => {
   try {
+    if (objectID.isValid(req.body.id) === false) {
+      return res.status(400).json({
+        message: 'id must be correct format',
+        succes: false,
+      });
+    }
     let result = await UserAddress.findByIdAndDelete({ _id: req.body.id });
     if (!result) {
       return res.status(400).json({
@@ -99,7 +135,7 @@ exports.deleteAddress = async (req, res) => {
     });
   } catch (error) {
     return res.status(400).json({
-      message: 'Id lenght must be 24 character/invalid id format',
+      message: error.message,
       succes: false,
     });
   }

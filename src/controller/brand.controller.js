@@ -1,6 +1,6 @@
 const { User, Category, Brand } = require('./../models/');
 
-const objectID = require('mongodb').ObjectID;
+const objectID = require('mongodb').ObjectId;
 
 const { uploadfile ,uploadfileInCloud,deleteImageFromCloud} = require('../middleware/')
 

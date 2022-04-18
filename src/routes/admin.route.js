@@ -5,6 +5,8 @@ const {
   adminLogin,
   verifiedByAdmin,
   getAllseller,
+  deleteSellerByAdmin,
+  getAllUser
 } = require('./../controller/');
 const { accessTokenVarify} = require('./../middleware');
 const {checkRole} = require('./../middleware/seller.middleware');
@@ -98,5 +100,61 @@ router.post('/verifySeller', accessTokenVarify,checkRole("admin"), verifiedByAdm
  *
  */
 router.get('/getAllSeller', accessTokenVarify,checkRole('admin'),getAllseller);
+
+
+/**
+ * @swagger
+ * /auth/admin/getAllUser:
+ *   get:
+ *     security:
+ *       - jwt: []
+ *     summary: get all seller
+ *     tags: [admin]
+ *     parameters:
+ *        - in: query
+ *          name: page
+ *          schema:
+ *            type: integer
+ *        - in: query
+ *          name: limit
+ *          schema:
+ *            type: integer
+ *     responses:
+ *       200:
+ *         description: get allUser successfully
+ *
+ *
+ *
+ */
+ router.get('/getAllUser', accessTokenVarify,checkRole('admin'),getAllUser);
+
+
+/**
+ * @swagger
+ * /auth/admin/seller/{id}:
+ *   delete:
+ *     summary: delete seller by admin
+ *     tags: [admin]
+ *     requestBody:
+ *         required: true
+ *         content:
+ *          application/json:
+ *            schema:
+ *                required:
+ *                   - id
+ *                properties:
+ *                   id:
+ *                      type: string
+ *                example:
+ *                   id: "573hbnsbdfhuru848"
+ *
+ *     responses:
+ *       200:
+ *         description: verified seller successfully
+ *
+ *
+ *
+ */
+ router.delete('/seller/:id', accessTokenVarify,checkRole("admin"), deleteSellerByAdmin);
 
 module.exports = router;

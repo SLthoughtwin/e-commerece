@@ -61,3 +61,23 @@ exports.categoryValidation = (req, res, next) => {
     next();
   }
 };
+
+exports.orderValidation = (req, res, next) => {
+  const validateUser = (user) => {
+    const JoiSchema = Joi.object({
+      status: Joi.string().trim().required().valid('shiping','delivered'),
+    }).or('status');
+    return JoiSchema.validate(user);
+  };
+
+  const response = validateUser(req.body);
+  if (response.error) {
+    return res.status(400).json({
+      message: response.error.details[0].message,
+      status: 400,
+      success: false,
+    });
+  } else {
+    next();
+  }
+};

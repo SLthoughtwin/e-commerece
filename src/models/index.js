@@ -5,6 +5,8 @@ const {Product,CloudId} = require('./product.model')
 const Category = require('./category_id')
 const Brand = require('./brand.id')
 const addCart = require('./addToCart.model')
+const Order = require('./order.model')
+const Review = require('./review.model')
 
 module.exports = {
   User,
@@ -14,5 +16,7 @@ module.exports = {
   Category,
   Brand,
   CloudId,
-  addCart
+  addCart,
+  Order,
+  Review
 };
