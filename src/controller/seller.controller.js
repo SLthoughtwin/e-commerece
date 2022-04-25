@@ -1,9 +1,9 @@
-const { User ,SellerProfile} = require('./../models/');
+const { User, SellerProfile } = require('./../models/');
 const { seller } = require('./../config/');
 const { refreshTokenVarify } = require('./../services/');
 const objectID = require('mongodb').ObjectId;
-const cloudinary = require('cloudinary').v2
-const { cloud_name , cloud_key, cloud_secret} = require('../config/')
+const cloudinary = require('cloudinary').v2;
+const { cloud_name, cloud_key, cloud_secret } = require('../config/');
 const {
   mailfunction,
   bcryptPasswordMatch,
@@ -13,15 +13,12 @@ const {
   sendMsg,
   sendMsgBymail,
   verifyEmail,
-  createToken
+  createToken,
 } = require('../services/');
-const {html}= require('../template/template');
+const { html } = require('../template/template');
 const { updateUser } = require('.');
 const { result } = require('lodash');
 // const { SellerProfile, User } = require('../models/');
-
-
-
 
 exports.signUPSeller = async (req, res) => {
   try {
@@ -37,38 +34,38 @@ exports.signUPSeller = async (req, res) => {
         const result = await User.create(req.body);
         const link = `http://localhost:8080/auth/seller/${result.resetToken}`;
         // const link = await createToken(result.email);
-        await mailfunction(email,html(link))
+        await mailfunction(email, html(link))
           .then((response) => {
             res.status(201).json({
-              success: true,
+              statusCode: 200,
               message: 'check your mail to verified :)',
             });
             console.log('check your mail to verified');
           })
           .catch((err) => {
-            console.log(err)
+            console.log(err);
             res.status(400).json({
-              success: false,
+              statusCode: 400,
               message: 'mail not send :)',
             });
           });
       } else {
         res.status(400).json({
+          statusCode: 400,
           message: 'email/phone already exist',
-          success: false,
         });
       }
     } else {
       res.status(400).json({
+        statusCode: 400,
         message:
           'invalid gmail formate please try this formate souarbh@gmail.com/yopmail.com',
-        success: false,
       });
     }
   } catch (error) {
     res.status(400).json({
+      statusCode: 400,
       message: 'email/phone already exist......',
-      success: false,
     });
   }
 };
@@ -92,6 +89,7 @@ exports.sellerLogin = async (req, res) => {
         const result = await User.findOne({ email: req.body.email });
         if (!result) {
           res.status(400).json({
+            statusCode: 400,
             message: 'invalid email',
           });
         } else if (result.role === 'seller') {
@@ -105,32 +103,32 @@ exports.sellerLogin = async (req, res) => {
                 const accesstoken = await accessToken(userId);
                 const refreshtoken = await refreshToken(userId);
                 return res.status(200).json({
-                  success: true,
+                  statusCode: 200,
+                  message: 'login successfully',
                   accToken: accesstoken,
                   refreshtoken: refreshtoken,
-                  message: 'login successfully',
                 });
               } else {
                 res.status(400).json({
-                  success: false,
+                  statusCode: 400,
                   message: 'invalid login details',
                 });
               }
             } else {
               res.status(400).json({
-                success: false,
+                statusCode: 400,
                 message: 'you are not approved by admin',
               });
             }
           } else {
             res.status(400).json({
-              success: false,
+              statusCode: 400,
               message: 'you are not verified by ',
             });
           }
         } else {
           res.status(400).json({
-            success: false,
+            statusCode: 400,
             message: 'role must be seller',
           });
         }
@@ -143,12 +141,13 @@ exports.sellerLogin = async (req, res) => {
             { otp: Otp },
           );
           res.status(200).json({
-            success: true,
+            statusCode: 200,
             message: 'otp send to your number',
           });
         } else {
           if (!result) {
             res.status(400).json({
+              statusCode: 400,
               message: 'invalid number ',
             });
           } else if (result.role === 'seller') {
@@ -163,38 +162,38 @@ exports.sellerLogin = async (req, res) => {
                     const accesstoken = await accessToken(userId);
                     const refreshtoken = await refreshToken(userId);
                     return res.status(200).json({
-                      success: true,
+                      statusCode: 200,
+                      message: 'login successfully',
                       accessToken: accesstoken,
                       refreshtoken: refreshtoken,
-                      message: 'login successfully',
                     });
                   } else {
                     res.status(400).json({
-                      success: false,
+                      statusCode: 400,
                       message: 'invalid login details',
                     });
                   }
                 } else {
                   res.status(400).json({
-                    success: false,
+                    statusCode: 400,
                     message: 'first verify otp then login.....?',
                   });
                 }
               } else {
                 res.status(400).json({
-                  success: false,
+                  statusCode: 400,
                   message: 'you are not approved by admin ',
                 });
               }
             } else {
               res.status(400).json({
-                success: false,
+                statusCode: 400,
                 message: 'your email is not verified ',
               });
             }
           } else {
             res.status(400).json({
-              success: false,
+              statusCode: 400,
               message: 'role must be seller',
             });
           }
@@ -202,13 +201,13 @@ exports.sellerLogin = async (req, res) => {
       }
     } else {
       res.status(400).json({
-        success: false,
+        statusCode: 400,
         message: 'user not found',
       });
     }
   } catch (error) {
     res.status(400).json({
-      success: false,
+      statusCode: 400,
       message: 'this phone number are not registerd in twilio sms',
     });
   }
@@ -217,28 +216,27 @@ exports.sellerLogin = async (req, res) => {
 exports.sellerVarified = async (req, res) => {
   const result = await User.findOne({ resetToken: req.params.token });
   if (result.isVerified === false) {
-
     if (result.resetTime >= Date.now()) {
       const result = await User.findOneAndUpdate(
         { resetToken: req.params.token },
         { isVerified: true },
       );
 
-      // sendMsgBymail(result.email);
+      sendMsgBymail(result.email);
       return res.status(200).json({
+        statusCode: 200,
         message: 'verified by mail',
-        success: true,
       });
     } else {
       return res.status(400).json({
+        statusCode: 400,
         message: 'your verification time has expired ',
-        success: false,
       });
     }
   } else {
     return res.status(200).json({
+      statusCode: 200,
       message: 'allready verified',
-      success: true,
     });
   }
 };
@@ -249,7 +247,10 @@ exports.verifiedOtp = async (req, res) => {
 
   const result = await User.findOne({ phone: contact });
   if (!result) {
-    return res.send('invalid otp/number');
+    return res.status(400).json({
+      statusCode: 400,
+      message: 'invalid otp/number ',
+    });
   } else {
     // if(result.resetTime <= Date.now()){
 
@@ -261,17 +262,19 @@ exports.verifiedOtp = async (req, res) => {
       // await sendMsg(req);
 
       res.status(200).json({
+        statusCode: 200,
         message: 'varified otp',
       });
     } else {
       res.status(400).json({
+        statusCode: 400,
         message: 'invalid user/otp ',
       });
     }
     // }else{
     //   res.status(400).json({
     //     message: "otp time has expired",
-    //     success: false
+    //
     //   })
     // }
   }
@@ -283,93 +286,92 @@ exports.logoutSelller = async (req, res) => {
     const data = await User.findOne({ _id });
     if (!data) {
       res.status(400).json({
-        success: false,
+        statusCode: 400,
         message: 'invalid id',
       });
     } else {
       const result = await User.findByIdAndUpdate({ _id }, { otp: null });
       res.status(200).json({
+        statusCode: 200,
         message: 'logout successfully',
-        success: true,
       });
     }
   } catch (error) {
     res.status(400).json({
-      success: false,
+      statusCode: 400,
       message: 'id lenght must be 24/invalid id',
     });
   }
 };
 
-
-
-
 exports.createProfile = async (req, res) => {
-  try{
-      const result = await User.findOne({ _id: req.body.sellerId });
-      if (!result) {
-        return res.status(400).json({
-          message: 'please insert valid sellerId',
-          succes: false,
-        });
-      }
-      const findProfile = await SellerProfile.findOne({ sellerId: req.body.sellerId });
-      if (findProfile) {
-       updateProfile(req,res)
-      }else{
-          const createProfile = await SellerProfile.create(req.body)
-          return res.status(200).json({
-            createProfile:createProfile,
-            message: 'create profile successfully',
-            succes: true,
-          });
-      }
-  }catch(error){
+  try {
+    const result = await User.findOne({ _id: req.body.sellerId });
+    if (!result) {
       return res.status(400).json({
-          message: 'Id lenght must be 24 character/invalid id format',
-          succes: false,
-        });
+        statusCode: 400,
+        message: 'please insert valid sellerId',
+      });
+    }
+    const findProfile = await SellerProfile.findOne({
+      sellerId: req.body.sellerId,
+    });
+    if (findProfile) {
+      updateProfile(req, res);
+    } else {
+      const createProfile = await SellerProfile.create(req.body);
+      return res.status(200).json({
+        statusCode: 200,
+        message: 'create profile successfully',
+        data: createProfile,
+      });
+    }
+  } catch (error) {
+    return res.status(400).json({
+      statusCode: 400,
+      message: 'Id lenght must be 24 character/invalid id format',
+    });
   }
-
 };
 
 updateProfile = async (req, res) => {
-  try{
-      const id = req.body.sellerId;
-      const fullName = req.body.fullName
-      if(fullName){
-        updateUserProfileTable(id,fullName)
-      }
-      const result = await SellerProfile.findOneAndUpdate({ sellerId: id }, req.body, {
+  try {
+    const id = req.body.sellerId;
+    const fullName = req.body.fullName;
+    if (fullName) {
+      updateUserProfileTable(id, fullName);
+    }
+    const result = await SellerProfile.findOneAndUpdate(
+      { sellerId: id },
+      req.body,
+      {
         new: true,
-      });
-      if (!result) {
-        return res.status(400).json({
-          message: 'inavlid id',
-          succes: false,
-        });
-      }
-      return res.status(200).json({
-        message: 'profile update successfully',
-        succes: true,
-        updateadd: result,
-      });
-  }catch(error){
+      },
+    );
+    if (!result) {
       return res.status(400).json({
-          message: 'Id lenght must be 24 character/invalid id format',
-          succes: false,
-        });
+        statusCode: 400,
+        message: 'inavlid id',
+      });
+    }
+    return res.status(200).json({
+      statusCode: 200,
+      message: 'profile update successfully',
+      data: result,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      statusCode: 400,
+      message: 'Id lenght must be 24 character/invalid id format',
+    });
   }
-
 };
 
-updateUserProfileTable = async (id,fullName)=>{
-
+updateUserProfileTable = async (id, fullName) => {
   const result = await User.findOneAndUpdate({ sellerId: id }, req.body, {
     new: true,
   });
-  
-}
+};
 
 exports.createAccessRefreshToken = async (req, res) => {
   const refreshVarify = req.body.token;
@@ -382,14 +384,12 @@ exports.createAccessRefreshToken = async (req, res) => {
   console.log('=============>', userId);
   if (!userId) {
     return res.status(400).json({
-      success: false,
       message: 'user not authenticated',
     });
   }
   const userToken = await User.findOne({ id: userId });
   if (!userToken) {
     return res.status(400).json({
-      success: false,
       message: 'invalid user',
     });
   } else {
@@ -397,6 +397,7 @@ exports.createAccessRefreshToken = async (req, res) => {
     const access_Token = await accessToken(userId);
     const refresh_Token = await refreshToken(userId);
     return res.status(400).json({
+      statusCode: 400,
       accesstoken: access_Token,
       refrestToken: refresh_Token,
     });

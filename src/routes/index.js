@@ -7,6 +7,7 @@ const brandRoute = require('./brand.route');
 const categoryRoute = require('./category.route')
 const cartRoute = require('./addCart.route')
 const orderRoute = require('./order.route')
+const reviewRoute = require('./review.route')
 module.exports = {
   sellerRoute,
   adminRoute,
@@ -16,5 +17,6 @@ module.exports = {
   brandRoute,
   categoryRoute,
   cartRoute,
-  orderRoute
+  orderRoute,
+  reviewRoute
 };

@@ -8,11 +8,11 @@ const {
   deleteAddress,
   axiosTest,
 } = require('../controller/');
-const { adderssValidation } = require('../middleware/');
+const { adderssValidation,accessTokenVarify } = require('../middleware/');
 
 /**
  * @swagger
- * /user/address:
+ * /v1/address:
  *   post:
  *     summary: create new address
  *     tags: [address]
@@ -69,31 +69,24 @@ const { adderssValidation } = require('../middleware/');
  *
  */
 
-router.post('/:id', adderssValidation, createAddress);
+router.post('/', accessTokenVarify,adderssValidation, createAddress);
 
 /**
  * @swagger
- * /user/address/show/{id}:
+ * /v1/address/show:
  *   get:
  *     summary: find address
  *     tags: [address]
- *     parameters:
- *      - in: path
- *        name: id
- *        schema:
- *          type: string
  *     responses:
  *       200:
  *         description: find address successfully
  *
- *
- *
  */
-router.get('/show/:id', showAddress);
+router.get('/show',accessTokenVarify, showAddress);
 
 /**
  * @swagger
- * /user/address:
+ * /v1/address:
  *   put:
  *     summary: update address
  *     tags: [address]
@@ -116,11 +109,11 @@ router.get('/show/:id', showAddress);
  *
  *
  */
-router.put('/', updateAddress);
+router.put('/',accessTokenVarify,updateAddress);
 
 /**
  * @swagger
- * /user/address:
+ * /v1/address:
  *   delete:
  *     summary: delete address
  *     tags: [address]
@@ -144,7 +137,7 @@ router.put('/', updateAddress);
  *
  *
  */
-router.delete('/', deleteAddress);
+router.delete('/', accessTokenVarify,deleteAddress);
 
 router.get('/axios', axiosTest);
 

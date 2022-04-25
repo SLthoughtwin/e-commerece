@@ -12,10 +12,10 @@ const {
   deleteProcduct,
   updateProduct,
   showProduct,
-  showProductById
+  showProductById,
 } = require('./../controller/');
 const cloudinary = require('cloudinary').v2;
-const {seller} = require('./../config/')
+const {seller,admin, userRole} = require('./../config/')
 
 
 /**
@@ -117,7 +117,7 @@ router.post(
  *
  */
 
-router.get('/', accessTokenVarify, checkRole(seller), showProduct);
+router.get('/', accessTokenVarify, checkRole(seller,admin,userRole), showProduct);
 
 /**
  * @swagger
@@ -199,5 +199,6 @@ router.put(
  */
 
 router.delete('/:id', accessTokenVarify, checkRole(seller), deleteProcduct);
+
 
 module.exports = router;

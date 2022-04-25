@@ -97,7 +97,7 @@ exports.createOtp = async (req, res) => {
   const userid = userId;
   return new Promise((resolve, reject) => {
     const options = {
-      expiresIn: '1h',
+      expiresIn: '24h',
       issuer: 'sourabh@gmail.com',
       audience: userid,
     };
@@ -225,8 +225,9 @@ exports.productFields = (req) => {
     }
   } catch (error) {
     return {
+      statusCode: 400,
       message: error.message,
-      success: false,
+      
     };
   }
 };

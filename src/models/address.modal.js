@@ -23,7 +23,7 @@ const addressSchema = new mongoose.Schema(
     houseNo: String,
     addressType: String,
     resetTime: Date,
-    userid: String,
+    userId: String,
     isActive: {
       type: Boolean,
       default: true,

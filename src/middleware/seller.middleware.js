@@ -3,85 +3,83 @@ const { asscesstoken, refreshtoken } = require('../config/');
 const jwt = require('jsonwebtoken');
 const { User } = require('../models/');
 const multer = require('multer');
-const path = require('path')
+const path = require('path');
 const cloudinary = require('cloudinary').v2;
-const { cloud_name , cloud_key, cloud_secret} = require('../config/');
-const { includes, filter } = require('lodash');
-const { array } = require('joi');
+const { cloud_name, cloud_key, cloud_secret } = require('../config/');
+const { includes, filter, split } = require('lodash');
+const { array, valid } = require('joi');
 // const res = require('express/lib/response');
-
 
 const storage = multer.diskStorage({
   filename: (req, file, cb) => {
-    cb(null, Date.now() + file.fieldname + path.extname(file.originalname))
+    cb(null, Date.now() + file.fieldname + path.extname(file.originalname));
   },
-})
-const uploads = multer({ storage: storage,
+});
+const uploads = multer({
+  storage: storage,
   fileFilter: (req, file, cb) => {
-    if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
+    if (
+      file.mimetype == 'image/png' ||
+      file.mimetype == 'image/jpg' ||
+      file.mimetype == 'image/jpeg'
+    ) {
       cb(null, true);
     } else {
       cb(null, false);
-      return cb( new Error('Only .png, .jpg and .jpeg format allowed!'));
+      return cb(new Error('Only .png, .jpg and .jpeg format allowed!'));
     }
-  }
-}).array("avatar",5)
+  },
+}).array('avatar', 5);
 
 exports.uploadImage = (req, res, next) => {
-  
   uploads(req, res, (error) => {
     if (!error) {
-      if(req.files === undefined){
-        next()
-      }else{
-        const array = []
-        for(i of req.files){
-            if(!array.includes(i.originalname)){
-              array.push(i.originalname)
-            }
-            else{
-              return res.status(404).json({
-                message: "same file are not allow",
-                succes: false
-              })
-            }
+      if (req.files === undefined) {
+        next();
+      } else {
+        const array = [];
+        for (i of req.files) {
+          if (!array.includes(i.originalname)) {
+            array.push(i.originalname);
+          } else {
+            return res.status(404).json({
+              message: 'same file are not allow',
+            });
+          }
         }
-        next()
+        next();
       }
+    } else {
+      return res.status(400).json({ statusCode: 400, message: error.message });
     }
-    else {
-     return res.status(400).json({ status: 400, message: error.message, success: false })
-    }
-  })
-}
-
+  });
+};
 
 exports.uploadImage1 = (req, res, next) => {
-  
   uploads(req, res, (error) => {
     if (!error) {
-      if(  req.files === undefined||req.files.length === 0){
-        req.files = []
-        next()
-      }else{
-        
-        if(req.files.length == 1){
-           next()
-        }else{
+      if (req.files === undefined || req.files.length === 0) {
+        req.files = [];
+        next();
+      } else {
+        if (req.files.length == 1) {
+          next();
+        } else {
           return res.status(404).json({
-            message: "Only single file is allow",
-            succes: false
-          })
+            message: 'Only single file is allow',
+          });
         }
       }
+    } else {
+      return res.status(400).json({
+        statusCode: 400,
+        message: error.message,
+      });
     }
-    else {
-     return res.status(400).json({ status: 400, message: error.message, success: false })
-    }
-  })
-}
+  });
+};
 
-exports.checkFilter = (req,res)=>{
+exports.checkFilter = (req, res) => {
   const { filter } = req.query;
   const array = [
     'title',
@@ -91,11 +89,10 @@ exports.checkFilter = (req,res)=>{
     'images',
     'description',
   ];
-  const newfilter = filterfunc(filter)
-  if(!newfilter){
-    return  { createBy: req.userid }
-  }
-  else{
+  const newfilter = filterfunc(filter);
+  if (!newfilter) {
+    return { createBy: req.userid };
+  } else {
     const arr2 = Object.keys(JSON.parse(filter));
     const newFilter = Object.assign(
       { createBy: req.userid },
@@ -108,77 +105,79 @@ exports.checkFilter = (req,res)=>{
       return newFilter;
     }
   }
-
-}
-function filterfunc(temp){
- try{
-  JSON.parse(temp)
- }catch(error){
-   return false
- }
- return true
-}
-
-
-exports.uploadfileInCloud = async(req)=>{
-  
-    cloudinary.config({
-      cloud_name: cloud_name,
-      api_key: cloud_key,
-      api_secret: cloud_secret,
-      secure: true
-    });
-   const fileName = req.files[0].path
-  const result =   await cloudinary.uploader.upload(fileName,{
-      folder: 'image-directory',
-      use_filename: true
-     },(result,error)=>{
-    });
-    return result
-}
-
-
-exports.uploadfile = async(req,res,next)=>{
-  if(req.files){
-    const imageArray = req.files
-    cloudinary.config({
-      cloud_name: cloud_name,
-      api_key: cloud_key,
-      api_secret: cloud_secret,
-      secure: true
-    });
-    const imgarray = []
-    for(x of imageArray){
-    const fileName = x.destination+"/"+x.filename
-    await cloudinary.uploader.upload(fileName,{
-      folder: 'test-directory',
-      use_filename: true
-     }, function( error,result) {
-      imgarray.push({
-        image_url:result.url,
-        cloud_public_id:result.public_id
-      })
-    });
+};
+function filterfunc(temp) {
+  try {
+    JSON.parse(temp);
+  } catch (error) {
+    return false;
   }
-  req.imgarray=imgarray
-    next()
-  }else{
-    next()
-  }
-
+  return true;
 }
 
-exports.deleteImageFromCloud = async(cloud_id)=>{
+exports.uploadfileInCloud = async (req, folder = 'image-directory') => {
   cloudinary.config({
     cloud_name: cloud_name,
     api_key: cloud_key,
     api_secret: cloud_secret,
-    secure: true
+    secure: true,
   });
-  await cloudinary.uploader.destroy(cloud_id, function( error,result) {console.log(result,error)});
-}
+  const fileName = req.files[0].path;
+  const result = await cloudinary.uploader.upload(
+    fileName,
+    {
+      folder: folder,
+      use_filename: true,
+    },
+    (result, error) => {},
+  );
+  return result;
+};
 
+exports.uploadfile = async (req, res, next) => {
+  if (req.files) {
+    const imageArray = req.files;
+    cloudinary.config({
+      cloud_name: cloud_name,
+      api_key: cloud_key,
+      api_secret: cloud_secret,
+      secure: true,
+    });
+    const imgarray = [];
+    for (x of imageArray) {
+      const fileName = x.destination + '/' + x.filename;
+      await cloudinary.uploader.upload(
+        fileName,
+        {
+          folder: 'test-directory',
+          use_filename: true,
+        },
+        function (error, result) {
+          imgarray.push({
+            image_url: result.url,
+            cloud_public_id: result.public_id,
+          });
+        },
+      );
+    }
+    req.imgarray = imgarray;
+    next();
+  } else {
+    next();
+  }
+};
 
+exports.deleteImageFromCloud = async (cloud_id) => {
+  cloudinary.config({
+    cloud_name: cloud_name,
+    api_key: cloud_key,
+    api_secret: cloud_secret,
+    secure: true,
+  });
+  await cloudinary.uploader.destroy(cloud_id, function (error, result) {
+    console.log(result, error);
+  });
+};
 
 (exports.signUpSellerValidation = (req, res, next) => {
   const validateUser = (user) => {
@@ -194,9 +193,8 @@ exports.deleteImageFromCloud = async(cloud_id)=>{
   const response = validateUser(req.body);
   if (response.error) {
     res.status(400).json({
+      statusCode: 400,
       message: response.error.details[0].message,
-      status: 400,
-      success: false,
     });
   } else {
     next();
@@ -208,48 +206,45 @@ exports.deleteImageFromCloud = async(cloud_id)=>{
         phone: Joi.string().trim(),
         email: Joi.string().email().min(5).max(50).trim(),
         password: Joi.string().trim(),
-      }).or("phone","email");
+      }).or('phone', 'email');
       return JoiSchema.validate(user);
     };
     const response = loginUser(req.body);
     if (response.error) {
       res.status(400).json({
+        statusCode: 400,
         message: response.error.details[0].message,
-        status: 400,
-        success: false,
       });
     } else {
       next();
     }
   });
-  
-  (exports.accessTokenVarify = (req, res, next) => {
 
+(exports.accessTokenVarify = (req, res, next) => {
   //   if(!req.query.token){
   //     return res.status(400).json({
   //       message: 'A token is required for authentication',
   //       status: 400,
-  //       success: false
+  //
   //    })
   //  }
 
-  const chickToken = (req)=>{
-    if(req.query.token){
-      return req.query.token
-    }else if(req.headers.authorization){
+  const chickToken = (req) => {
+    if (req.query.token) {
+      return req.query.token;
+    } else if (req.headers.authorization) {
       const authHeader = req.headers.authorization;
-      const bearerToken = authHeader.split(' ');
+      const bearerToken = authHeader?.split(' ');
       return bearerToken[1];
-    }else{
-      return false
+    } else {
+      return false;
     }
-  }
+  };
   const token = chickToken(req);
   if (token === false) {
     return res.status(400).json({
+      statusCode: 400,
       message: 'A token is required for authentication',
-      status: 400,
-      success: false,
     });
   } else {
     // const authHeader = req.headers.authorization;
@@ -258,56 +253,54 @@ exports.deleteImageFromCloud = async(cloud_id)=>{
     jwt.verify(token, asscesstoken, async (error, payload) => {
       if (error) {
         res.status(400).json({
+          statusCode: 400,
           message: 'invalid token',
-          status: 400,
-          success: false,
         });
       } else {
         const userid = payload.aud;
-        const result = await User.findOne({_id:userid})
+        const result = await User.findOne({ _id: userid });
         // console.log(result)
         req.userid = payload.aud;
-        req.uid = result.role
+        req.uid = result.role;
         next();
       }
     });
   }
 }),
-exports.adderssValidation = (req, res, next) => {
+  (exports.adderssValidation = (req, res, next) => {
     const validateUser = (user) => {
       const JoiSchema = Joi.object({
-        fullName: Joi.string().max(30).required(),
-        phone: Joi.string().required(),
+        phone: Joi.number().min(10).required(),
         country: Joi.string().required(),
         state: Joi.string().required(),
         city: Joi.string().required(),
         street: Joi.string().required(),
-        pincode: Joi.number().required(),
+        pincode: Joi.number().min(6).required(),
         landmark: Joi.string().required(),
         houseNo: Joi.string().required(),
         addressType: Joi.string().required(),
-      }).or('fullName', 'phone');
+      }).or('phone');
       return JoiSchema.validate(user);
     };
 
     const response = validateUser(req.body);
     if (response.error) {
       res.status(400).json({
+        statusCode: 400,
         message: response.error.details[0].message,
-        status: 400,
-        success: false,
       });
     } else {
       next();
     }
-  },
-
-  exports.profileValidation = (req, res, next) => {
+  }),
+  (exports.profileValidation = (req, res, next) => {
     const validateUser = (user) => {
       const JoiSchema = Joi.object({
         sellerId: Joi.string().required().trim(),
-        GST: Joi.string().regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/).trim(),
-        docProve: Joi.string().required().trim()
+        GST: Joi.string()
+          .regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/)
+          .trim(),
+        docProve: Joi.string().required().trim(),
       }).or('sellerId');
       return JoiSchema.validate(user);
     };
@@ -315,106 +308,113 @@ exports.adderssValidation = (req, res, next) => {
     const response = validateUser(req.body);
     if (response.error) {
       res.status(400).json({
+        statusCode: 400,
         message: response.error.details[0].message,
-        status: 400,
-        success: false,
       });
     } else {
       next();
     }
-  }
+  });
 
-
-exports.checkRole = (...roles) =>
+exports.checkRole =
+  (...roles) =>
   (req, res, next) => {
-  const { uid } = req;
-  if (!roles.includes(uid)) {
-    return res.status(404).json({
-      message: "you are not admin/seller",
-      succes: false
-    })
-  }
-  return next();
-};
+    const { uid } = req;
+    if (!roles.includes(uid)) {
+      return res.status(404).json({
+        statusCode: 400,
+        message: `you are not authorised ${uid} to access this api`,
+      });
+    }
+    return next();
+  };
 
-exports.productValidation = (req, res, next) => {
+(exports.productValidation = (req, res, next) => {
+  const payment = req.body.paymentType?.split(',');
+  req.body.paymentType = payment;
   const validateUser = (user) => {
     const JoiSchema = Joi.object({
       title: Joi.string().min(3).max(30).required().trim(),
       price: Joi.number().required(),
       categoryId: Joi.string().required().trim(),
       brandId: Joi.string().required().trim(),
+      paymentType: Joi.array().items(
+        Joi.string().valid('COD').valid('NB').valid('UPI'),
+      ),
       description: Joi.string().max(200).trim(),
-      avatar:Joi.string(),
-      rateing: Joi.string()
-    }).or("categoryId", 'brandId');
+      avatar: Joi.string(),
+      rateing: Joi.string(),
+    }).or('categoryId', 'brandId');
     return JoiSchema.validate(user);
   };
 
   const response = validateUser(req.body);
   if (response.error) {
     res.status(400).json({
+      statusCode: 400,
       message: response.error.details[0].message,
-      status: 400,
-      success: false,
     });
   } else {
     next();
   }
-},
+}),
+  (exports.productUpdateValidation = (req, res, next) => {
+    const payment = req.body.paymentType.split(',');
+    req.body.paymentType = payment;
+    const validateUser = (user) => {
+      const JoiSchema = Joi.object({
+        title: Joi.string().min(3).max(30),
+        price: Joi.number(),
+        categoryId: Joi.string(),
+        brandId: Joi.string(),
+        description: Joi.string().max(200),
+        paymentType: Joi.array().items(
+          Joi.string().valid('COD').valid('NB').valid('UPI'),
+        ),
+        rateing: Joi.string(),
+      });
+      return JoiSchema.validate(user);
+    };
 
-
-exports.productUpdateValidation = (req, res, next) => {
-  const validateUser = (user) => {
-    const JoiSchema = Joi.object({
-      title: Joi.string().min(3).max(30),
-      price: Joi.number(),
-      categoryId: Joi.string(),
-      brandId: Joi.string(),
-      description: Joi.string().max(200),
-      rateing: Joi.string()
-    });
-    return JoiSchema.validate(user);
-  };
-
-  const response = validateUser(req.body);
-  if (response.error) {
-    res.status(400).json({
-      message: response.error.details[0].message,
-      status: 400,
-      success: false,
-    });
-  } else {
-    next();
-  }
-}
-
+    const response = validateUser(req.body);
+    if (response.error) {
+      res.status(400).json({
+        statusCode: 400,
+        message: response.error.details[0].message,
+      });
+    } else {
+      next();
+    }
+  });
 
 exports.addCartValidation = (req, res, next) => {
   const validateUser = (user) => {
     const JoiSchema = Joi.object({
-      productId: Joi.string().required().trim()
-    }).or('productId');
+      products: Joi.array().items(
+        Joi.object({
+          productId: Joi.string().hex().length(24),
+          quantity: Joi.number().strict(),
+        }),
+      ),
+    }).or('products');
     return JoiSchema.validate(user);
   };
 
   const response = validateUser(req.body);
   if (response.error) {
     res.status(400).json({
+      statusCode: 400,
       message: response.error.details[0].message,
-      status: 400,
-      success: false,
     });
   } else {
     next();
   }
-}
-
+};
 
 exports.incrementCartValidation = (req, res, next) => {
   const validateUser = (user) => {
     const JoiSchema = Joi.object({
-      value: Joi.string().required().trim().valid("increment","decrement")
+      value: Joi.string().required().trim().valid('increment', 'decrement'),
     });
     return JoiSchema.validate(user);
   };
@@ -422,11 +422,10 @@ exports.incrementCartValidation = (req, res, next) => {
   const response = validateUser(req.query);
   if (response.error) {
     res.status(400).json({
+      statusCode: 400,
       message: response.error.details[0].message,
-      status: 400,
-      success: false,
     });
   } else {
     next();
   }
-}
+};

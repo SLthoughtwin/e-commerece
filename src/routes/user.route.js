@@ -17,7 +17,7 @@ const {
 
 /**
  * @swagger
- * /auth/user/register:
+ * /v1/user/register:
  *   post:
  *     summary: create a new user
  *     tags: [user]
@@ -58,7 +58,7 @@ router.post('/register', signUpSellerValidation, signUPUser);
 
 /**
  * @swagger
- * /auth/user/login:
+ * /v1/user/login:
  *   post:
  *     summary: user login
  *     tags: [user]
@@ -93,7 +93,7 @@ router.post('/login', loginsellerValidation, userLogin);
 
 /**
  * @swagger
- * /auth/user/varifiedotp:
+ * /v1/user/varifiedotp:
  *   post:
  *     summary: user verify by otp
  *     tags: [user]
@@ -125,7 +125,7 @@ router.post('/varifiedotp', userVerifiedOtp);
 
 /**
  * @swagger
- * /auth/user/logout:
+ * /v1/user/logout:
  *   post:
  *     summary: user logout
  *     tags: [user]
@@ -153,7 +153,7 @@ router.post('/logout', logoutUser);
 
 /**
  * @swagger
- * /auth/user/{token}:
+ * /v1/user/{token}:
  *   get:
  *     summary: verifyed user by token
  *     tags: [user]
@@ -174,7 +174,7 @@ router.get('/:token', userVarified);
 
 /**
  * @swagger
- * /auth/user/updateUser:
+ * /v1/user/updateUser:
  *   post:
  *     summary: updateuser
  *     tags: [user]

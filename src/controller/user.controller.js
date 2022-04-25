@@ -1,6 +1,6 @@
 const { User } = require('./../models/');
 const { userRole } = require('./../config/');
-const cron = require("node-cron");
+const cron = require('node-cron');
 const {
   mailfunction,
   bcryptPasswordMatch,
@@ -13,16 +13,14 @@ const {
   verifyEmail,
 } = require('../services/');
 
-
-cron.schedule("0 1 * * *", async function () {
-  const findUser = await User.find({role:"user",isVerified:true})
-  const email =  findUser.map((user)=>{
-    const mail  = user.email
+cron.schedule('0 1 * * *', async function () {
+  const findUser = await User.find({ role: 'user', isVerified: true });
+  const email = findUser.map((user) => {
+    const mail = user.email;
     sendMsgBymail(mail);
-    console.log(mail)
-  })
+    console.log(mail);
   });
-
+});
 
 exports.signUPUser = async (req, res) => {
   try {
@@ -36,38 +34,38 @@ exports.signUPUser = async (req, res) => {
         req.body.role = userRole;
         const email = req.body.email;
         const result = await User.create(req.body);
-        const link = `http://localhost:8080/seller/${result.resetToken}`;
+        const link = `http://localhost:5000/seller/${result.resetToken}`;
         await mailfunction(email, link)
           .then((response) => {
             res.status(201).json({
-              success: true,
+              statusCode: 200,
               message: 'check your mail to verified :)',
             });
             console.log('check your mail to verified');
           })
           .catch((err) => {
             res.status(400).json({
-              success: false,
+              statusCode: 400,
               message: 'mail not send :)',
             });
           });
       } else {
         res.status(400).json({
+          statusCode: 400,
           message: 'email/phone already exist',
-          success: false,
         });
       }
     } else {
       res.status(400).json({
+        statusCode: 400,
         message:
           'invalid gmail formate please try this formate @gmail.com/yopmail.com',
-        success: false,
       });
     }
   } catch (error) {
     res.status(400).json({
+      statusCode: 400,
       message: 'email/phone already exist',
-      success: false,
     });
   }
 };
@@ -89,6 +87,7 @@ exports.userLogin = async (req, res) => {
         const result = await User.findOne({ email: req.body.email });
         if (!result) {
           res.status(400).json({
+            statusCode: 400,
             message: 'invalid email',
           });
         } else if (result.role === 'user') {
@@ -101,27 +100,27 @@ exports.userLogin = async (req, res) => {
               const accesstoken = await accessToken(userId);
               const refreshtoken = await refreshToken(userId);
               return res.status(200).json({
+                statusCode: 200,
+                message: 'login successfully',
                 name: result.fullName,
-                success: true,
                 accToken: accesstoken,
                 refreshtoken: refreshtoken,
-                message: 'login successfully',
               });
             } else {
               res.status(400).json({
-                success: false,
+                statusCode: 400,
                 message: 'invalid login details',
               });
             }
           } else {
             res.status(400).json({
-              success: false,
+              statusCode: 400,
               message: 'first verified your gmail',
             });
           }
         } else {
           res.status(400).json({
-            success: false,
+            statusCode: 400,
             message: 'Role must be user',
           });
         }
@@ -134,12 +133,13 @@ exports.userLogin = async (req, res) => {
             { otp: Otp, resetTime: Date.now() + 10 * 60000 },
           );
           res.status(200).json({
-            success: true,
+            statusCode: 200,
             message: 'otp send to your number',
           });
         } else {
           if (!result) {
             res.status(400).json({
+              statusCode: 200,
               message: 'invalid number ',
             });
           } else if (result.role === 'user') {
@@ -153,33 +153,33 @@ exports.userLogin = async (req, res) => {
                   const accesstoken = await accessToken(userId);
                   const refreshtoken = await refreshToken(userId);
                   return res.status(200).json({
-                    success: true,
-                    name:result.fullName,
+                    statusCode: 200,
+                    message: 'login successfully',
+                    name: result.fullName,
                     accessToken: accesstoken,
                     refreshtoken: refreshtoken,
-                    message: 'login successfully',
                   });
                 } else {
                   res.status(400).json({
-                    success: false,
+                    statusCode: 400,
                     message: 'invalid login details',
                   });
                 }
               } else {
                 res.status(400).json({
-                  success: false,
+                  statusCode: 400,
                   message: 'first verify otp then login.....?',
                 });
               }
             } else {
               res.status(400).json({
-                success: false,
+                statusCode: 400,
                 message: 'your email is not verified',
               });
             }
           } else {
             res.status(400).json({
-              success: false,
+              statusCode: 400,
               message: 'Role must be user',
             });
           }
@@ -187,13 +187,13 @@ exports.userLogin = async (req, res) => {
       }
     } else {
       res.status(400).json({
-        success: false,
+        statusCode: 400,
         message: 'user not found',
       });
     }
   } catch (error) {
     res.status(400).json({
-      success: false,
+      statusCode: 400,
       message: 'this phone number are not registerd in twilio sms',
     });
   }
@@ -211,25 +211,25 @@ exports.userVarified = async (req, res) => {
 
         sendMsgBymail(result.email);
         return res.status(200).json({
+          statusCode: 200,
           message: 'verified by mail',
-          success: true,
         });
       } else {
         return res.status(400).json({
+          statusCode: 400,
           message: 'your verification time has expired ',
-          success: false,
         });
       }
     } else {
       return res.status(200).json({
+        statusCode: 200,
         message: 'already  verified',
-        success: true,
       });
     }
   } catch (error) {
     res.status(400).json({
+      statusCode: 200,
       message: 'invalid user',
-      success: false,
     });
   }
 };
@@ -241,7 +241,10 @@ exports.userVerifiedOtp = async (req, res) => {
 
     const result = await User.findOne({ phone: contact });
     if (!result) {
-      return res.send('invalid otp/number');
+      return res.status(200).json({
+        statusCode: 200,
+        message: 'invalid otp/number',
+      });
     } else {
       if (result.resetTime <= Date.now()) {
         if (result.otp === otp) {
@@ -252,24 +255,26 @@ exports.userVerifiedOtp = async (req, res) => {
           // await sendMsg(req);
 
           res.status(200).json({
+            statusCode: 200,
             message: 'varified otp',
           });
         } else {
           res.status(400).json({
+            statusCode: 400,
             message: 'invalid user/otp ',
           });
         }
       } else {
         res.status(400).json({
+          statusCode: 400,
           message: 'otp time has been expired',
-          success: false,
         });
       }
     }
   } catch (error) {
     res.status(400).json({
+      statusCode: 400,
       message: 'invalid otp',
-      success: false,
     });
   }
 };
@@ -280,19 +285,19 @@ exports.logoutUser = async (req, res) => {
     const data = await User.findOne({ _id });
     if (!data) {
       res.status(400).json({
-        success: false,
+        statusCode: 400,
         message: 'invalid id',
       });
     } else {
       const result = await User.findByIdAndUpdate({ _id }, { otp: null });
       res.status(200).json({
+        statusCode: 400,
         message: 'logout successfully',
-        success: true,
       });
     }
   } catch (error) {
     res.status(400).json({
-      success: false,
+      statusCode: 400,
       message: 'id lenght must be 24',
     });
   }
@@ -309,50 +314,49 @@ exports.createAccessRefreshTokenToUser = async (req, res) => {
   console.log('=============>', userId);
   if (!userId) {
     return res.status(400).json({
-      success: false,
+      statusCode: 400,
       message: 'user not authenticated',
     });
   }
   const userToken = await User.findOne({ id: userId });
   if (!userToken) {
     return res.status(400).json({
-      success: false,
+      statusCode: 400,
       message: 'invalid user',
     });
   } else {
     // console.log('=============>', userId);
     const access_Token = await accessToken(userId);
     const refresh_Token = await refreshToken(userId);
-    return res.status(400).json({
+    return res.status(200).json({
+      statusCode: 200,
       accesstoken: access_Token,
       refrestToken: refresh_Token,
     });
   }
 };
 
-
 exports.updateUser = async (req, res) => {
-  try{
-      const id = req.body.id;
-      const result = await User.findOneAndUpdate({ _id: id }, req.body, {
-        new: true,
-      });
-      if (!result) {
-        return res.status(400).json({
-          message: 'inavlid id',
-          succes: false,
-        });
-      }
-      return res.status(200).json({
-        message: 'profile update successfully',
-        succes: true,
-        updateadd: result,
-      });
-  }catch(error){
+  try {
+    const id = req.body.id;
+    const result = await User.findOneAndUpdate({ _id: id }, req.body, {
+      new: true,
+    });
+    if (!result) {
       return res.status(400).json({
-          message: 'Id lenght must be 24 character/invalid id format',
-          succes: false,
-        });
+        statusCode: 400,
+        message: 'inavlid id',
+      });
+    }
+    return res.status(200).json({
+      statusCode: 200,
+      message: 'profile update successfully',
+      data: result,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      statusCode: 400,
+      message: 'Id lenght must be 24 character/invalid id format',
+    });
   }
-
 };

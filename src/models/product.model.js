@@ -23,13 +23,21 @@ const productSchema = new mongoose.Schema(
     type: Number,
     default: 200
   },
+  paymentType:{
+    type: Array,
+    default:["COD"]
+  },
   isAvailable :{
     type: Boolean,
     default: true
   },
   rating:String,
   description:String,
-  isApproved:{
+  deliveryDate:{
+    type:Date,
+    default:new Date(+new Date()+3*24*60*60*1000),
+  },
+  isApprovedByadmin:{
     type: Boolean,
     default: false
   },
@@ -72,3 +80,8 @@ const CloudId = mongoose.model('CloudId', CloudIdSchema);
 
 
 module.exports = {CloudId,Product};
+
+
+
+
+

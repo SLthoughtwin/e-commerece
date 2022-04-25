@@ -1,61 +1,58 @@
 const { User, Category, Brand, addCart, Product } = require('./../models/');
-const Redis = require("ioredis");
-const redis = new Redis();
+// const Redis = require("ioredis");
+// const redis = new Redis();
 const objectID = require('mongodb').ObjectId;
 const { addCartValidation } = require('../middleware/');
 
 exports.createCart = async (req, res) => {
   try {
-    if (objectID.isValid(req.body.productId) === false) {
-      return res.status(400).json({
-        message: 'productid id must be correct format',
-        succes: false,
-      });
-    }
-    const findProduct = await Product.findOne({ _id: req.body.productId });
-    if (!findProduct) {
-      return res.status(400).json({
-        message: 'this card is not available',
-        succes: false,
-      });
-    }
-
-    const result = await addCart.findOne({
-      productId: req.body.productId,
-      userId: req.userid,
-    });
-
-    if (findProduct.quantity < result.quantity) {
-      return res.status(400).json({
-        message: 'out of stock',
-        succes: false,
-      });
-    }
-    if (result) {
-      result.quantity += 1;
-      await result.save();
-      const setRedis = await  redis.set(result.id, JSON.stringify(result), "EX", 10);
-      const getRedis = await  redis.get(result.id);
-      console.log(getRedis)
-      const newCart = await addCart.findOne({ _id: result.id });
-      return res.status(200).json({
-        message: 'add card successfully',
-        succes: true,
-        data: (getRedis),
-      });
+    const { products } = req.body
+    let totalPrice = 0;
+    for (i of products) {
+      let productId = i.productId;
+      let quantity = i.quantity;
+      const findProduct = await Product.findOne({ _id: productId });
+      if (!findProduct) {
+        return res.status(404).json({
+          statusCode:400,
+          message: `this product is not available... Id:${productId}`,
+        });
+      }
+      if (quantity > findProduct.quantity) {
+        return res.status(404).json({
+          statusCode:400,
+          message: `out of stoke this :${productId}`,
+        });
+      }
+      const amount = parseInt(findProduct.price * quantity);
+      i.price = amount;
+      totalPrice += amount;
     }
     req.body.userId = req.userid;
-    const createCart = await addCart.create(req.body);
+    let findCart = await addCart.findOne({userId:req.userid})
+    let createCart
+    if(!findCart){
+       createCart = await addCart.create(req.body);
+       return res.status(200).json({
+        statusCode:200,
+        message: 'add cart successfully....',
+        data: createCart,
+      });
+    }
+    for(i of products){
+      findCart.products.push(i)
+    }
+    createCart = await findCart.save()
     return res.status(200).json({
-      data: createCart,
+      statusCode:200,
       message: 'add cart successfully....',
-      succes: true,
+      data: createCart
     });
   } catch (error) {
     console.log(error)
     return res.status(400).json({
+      statusCode:400,
       message: error.message,
-      succes: false,
     });
   }
 };
@@ -64,23 +61,23 @@ exports.IncreAndDecre = async (req, res) => {
   try {
     if (objectID.isValid(req.params.id) === false) {
       return res.status(400).json({
+        statusCode:400,
         message: 'cart id must be correct format',
-        succes: false,
       });
     }
 
     const result = await addCart.findOne({ _id: req.params.id });
     if (!result) {
       return res.status(400).json({
-        message: 'inavalid cart id',
-        succes: false,
+        statusCode:400,
+        message: 'inavalid cart id'
       });
     }
     const findProduct = await Product.findOne({ _id: result.productId });
     if (!findProduct) {
       return res.status(400).json({
-        message: 'this card is not available',
-        succes: false,
+        statusCode:400,
+        message: 'this card is not available'
       });
     }
 
@@ -88,37 +85,37 @@ exports.IncreAndDecre = async (req, res) => {
       result.quantity += 1;
       if (findProduct.quantity < result.quantity) {
         return res.status(400).json({
-          message: 'out of stock',
-          succes: false,
+          statusCode:400,
+          message: 'out of stock'
         });
       }
 
       await result.save();
       const increment = await addCart.findOne({ _id: result.id });
       return res.status(200).json({
-        data: increment,
+        statusCode:200,
         message: 'find cart successfully',
-        succes: true,
+        data: increment
       });
     }
     if (0 == result.quantity) {
       return res.status(400).json({
+        statusCode:400,
         message: 'quantity cloud not be less than zero',
-        succes: false,
       });
     }
     result.quantity -= 1;
     await result.save();
     const increment = await addCart.findOne({ _id: result.id });
     return res.status(200).json({
-      data: increment,
+      statusCode:200,
       message: 'find cart successfully',
-      success: true,
+      data: increment,
     });
   } catch (error) {
     return res.status(400).json({
+      statusCode:400,
       message: error.message,
-      succes: false,
     });
   }
 };
@@ -131,20 +128,19 @@ exports.showCart = async (req, res) => {
     }
     if (!result) {
       return res.status(400).json({
+        statusCode:400,
         message: 'there is no cart',
-        succes: false,
       });
     }
-console.log(price)
     return res.status(200).json({
-      succes: true,
+      statusCode:200,
       message: `data found / total price for ${result.length} items : ${price}`,
       data: result,
     });
   } catch (error) {
     return res.status(400).json({
+      statusCode:400,
       message: error.message,
-      succes: false,
     });
   }
 };
@@ -152,29 +148,31 @@ exports.deleteCart = async (req, res) => {
   try {
     if (objectID.isValid(req.params.id) === false) {
       return res.status(400).json({
+        statusCode:400,
         message: 'cart id must be correct format',
-        succes: false,
+        
       });
     }
 
-    const result = await addCart.findOneAndDelete({ _id: req.params.id });
+    const findCart = await addCart.findOne({userId:req.userid})
+    const result = await addCart.findOneAndUpdate({$pull: {products: {_id: req.params.id}}});
     if (!result) {
       return res.status(400).json({
+        statusCode:400,
         message: 'there is no cart releted this id',
-        succes: false,
       });
     }
     const delRedis = await  redis.del(result.id);
     // await deleteImageFromCloud(result.imageId);
     return res.status(200).json({
-      createBrand: result,
+      statusCode:200,
       message: 'delete cart successfully',
-      succes: true,
+      data: result,
     });
   } catch (error) {
     return res.status(400).json({
+      statusCode:400,
       message: error.message,
-      succes: false,
     });
   }
 };
@@ -182,28 +180,28 @@ exports.deleteAllCart = async (req, res) => {
   try {
     if (objectID.isValid(req.params.id) === false) {
       return res.status(400).json({
+        statusCode:400,
         message: 'cart id must be correct format',
-        succes: false,
       });
     }
 
     const result = await addCart.deleteMany({ userId: req.params.id });
     if (!result) {
       return res.status(400).json({
+        statusCode:400,
         message: 'there is no cart releted this id',
-        succes: false,
       });
     }
     // const delRedis = await  redis.del(result.id);
     return res.status(200).json({
-      createBrand: result,
+      statusCode:200,
       message: 'delete allcart successfully',
-      succes: true,
+      data: result,
     });
   } catch (error) {
     return res.status(400).json({
+      statusCode:400,
       message: error.message,
-      succes: false,
     });
   }
 };

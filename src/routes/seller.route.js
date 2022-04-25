@@ -21,7 +21,7 @@ const {
 
 /**
  * @swagger
- * /auth/seller/register:
+ * /v1/seller/register:
  *   post:
  *     summary: create a new seller
  *     tags: [seller]
@@ -62,7 +62,7 @@ router.post('/register', signUpSellerValidation, signUPSeller);
 
 /**
  * @swagger
- * /auth/seller/login:
+ * /v1/seller/login:
  *   post:
  *     summary: seller login
  *     tags: [seller]
@@ -97,7 +97,7 @@ router.post('/login', loginsellerValidation, sellerLogin);
 
 /**
  * @swagger
- * /auth/seller/varifiedotp:
+ * /v1/seller/varifiedotp:
  *   post:
  *     summary: seller verify by otp
  *     tags: [seller]
@@ -129,7 +129,7 @@ router.post('/varifiedotp', verifiedOtp);
 
 /**
  * @swagger
- * /auth/seller/logout:
+ * /v1/seller/logout:
  *   post:
  *     summary: logout seller
  *     tags: [seller]
@@ -157,7 +157,7 @@ router.post('/logout', logoutSelller);
 
 /**
  * @swagger
- * /auth/seller/{token}:
+ * /v1/seller/{token}:
  *   get:
  *     security:
  *       - jwt: []
@@ -182,7 +182,7 @@ router.get('/:token', sellerVarified);
 
 /**
  * @swagger
- * /auth/seller/peofile:
+ * /v1/seller/peofile:
  *   post:
  *     summary: create a new sellerprofile
  *     tags: [seller]
@@ -219,7 +219,7 @@ router.get('/:token', sellerVarified);
 
  /**
  * @swagger
- * /auth/seller/upload:
+ * /v1/seller/upload:
  *   post:
  *     summary: verifyed seller by token
  *     tags: [seller]

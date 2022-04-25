@@ -1,9 +1,10 @@
 const {
-  verifiedByAdmin,
+  approvedAndRejectSellerByAdmin,
   adminLogin,
   getAllseller,
   deleteSellerByAdmin,
   getAllUser,
+  productApprovedAndRejectByadmin
 } = require('./admin.controller');
 const {
   sellerVarified,
@@ -61,21 +62,26 @@ const {
   IncreAndDecre,
   deleteAllCart,
 } = require('./addCart.controller');
-const { 
-  getOrder,
-   cancelOrder,
-    getAllOrder,
-    getOrderById,
-    changeStatus } = require('./order.controller');
+const {
+  createOrder,
+  cancelOrder,
+  getAllOrder,
+  getOrderById,
+  changeStatus,
+  fsatDeviveryDate
+} = require('./order.controller');
 
-const{deleteReview,createReview} = require('./review.controller');
+const { 
+  deleteReview, 
+  createReview ,
+  getReview,} = require('./review.controller');
 
 module.exports = {
   sellerVarified,
   signUPSeller,
   sellerLogin,
   verifiedOtp,
-  verifiedByAdmin,
+  approvedAndRejectSellerByAdmin,
   adminLogin,
   createAccessRefreshToken,
   getAllseller,
@@ -96,8 +102,10 @@ module.exports = {
   createProduct,
   updateProduct,
   showProduct,
+  fsatDeviveryDate,
   deleteProcduct,
   showProductById,
+  productApprovedAndRejectByadmin,
   createCategory,
   updateCategory,
   showCategoryById,
@@ -115,11 +123,12 @@ module.exports = {
   deleteAllCart,
   deleteSellerByAdmin,
   getAllUser,
-  getOrder,
+  createOrder,
   cancelOrder,
   getAllOrder,
   getOrderById,
   changeStatus,
   deleteReview,
-  createReview
+  createReview,
+  getReview,
 };
