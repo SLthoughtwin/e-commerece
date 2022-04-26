@@ -34,8 +34,8 @@ const productSchema = new mongoose.Schema(
   rating:String,
   description:String,
   deliveryDate:{
-    type:Date,
-    default:new Date(+new Date()+3*24*60*60*1000),
+    type:Number,
+    default:3,
   },
   isApprovedByadmin:{
     type: Boolean,
@@ -49,6 +49,8 @@ productSchema.set('toJSON', {
   versionKey: false,
   transform: function (doc, ret) {
     delete ret._id;
+   const date = new Date(+new Date() + 3 * 24 * 60 * 60 * 1000)
+    ret.deliveryDate = new Date(date)
   },
 });
 

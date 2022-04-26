@@ -1,10 +1,19 @@
 const express = require('express');
-const { createCart, showCart, deleteCart,IncreAndDecre,deleteAllCart} = require('../controller/');
+const {
+  createCart,
+  showCart,
+  deleteCartItems,
+  IncreAndDecre,
+  deleteCart,
+} = require('../controller/');
 const router = express();
 
-const { addCartValidation,accessTokenVarify,checkRole,incrementCartValidation} = require('../middleware')
-
-
+const {
+  addCartValidation,
+  accessTokenVarify,
+  checkRole,
+  incrementCartValidation,
+} = require('../middleware');
 
 /**
  * @swagger
@@ -25,37 +34,42 @@ const { addCartValidation,accessTokenVarify,checkRole,incrementCartValidation} =
  *                  quantity : "12"
  */
 
-
 /**
  * @swagger
  * /v1/cart:
  *   post:
- *     summary: create brand 
+ *     summary: create brand
  *     tags: [cart]
  *     requestBody:
  *         required: true
  *         content:
- *           application/json:  
+ *           application/json:
  *            schema:
  *              $ref: '#components/schemas/cart'
  *     responses:
  *       200:
  *         description: cart create successfully
  */
-router.post('/',accessTokenVarify,checkRole('user'),addCartValidation,createCart)
+router.post(
+  '/',
+  accessTokenVarify,
+  checkRole('user'),
+  addCartValidation,
+  createCart,
+);
 
 /**
  * @swagger
  * /v1/cart:
  *   get:
- *     summary: show cart 
+ *     summary: show cart
  *     tags: [cart]
  *     responses:
  *       200:
  *         description: show cart successfully
  *
  */
-router.get('/',accessTokenVarify,checkRole('user'),showCart)
+router.get('/', accessTokenVarify, checkRole('user'), showCart);
 
 /**
  * @swagger
@@ -73,15 +87,13 @@ router.get('/',accessTokenVarify,checkRole('user'),showCart)
  *         description: delete cart by id  successfully
  *
  */
-router.delete('/:id',accessTokenVarify,checkRole('user'),deleteCart)
-
-
+router.delete('/:id', accessTokenVarify, checkRole('user'), deleteCartItems);
 
 /**
  * @swagger
  * /v1/cart/deleteAll/{id}:
  *   delete:
- *     summary: delete Allcart 
+ *     summary: delete Allcart
  *     tags: [cart]
  *     parameters:
  *      - in: path
@@ -93,8 +105,12 @@ router.delete('/:id',accessTokenVarify,checkRole('user'),deleteCart)
  *         description: delete Allcart successfully
  *
  */
- router.delete('/deleteAll/:id',accessTokenVarify,checkRole('user'),deleteAllCart)
-
+router.delete(
+  '/deleteAll/:id',
+  accessTokenVarify,
+  checkRole('user'),
+  deleteCart,
+);
 
 /**
  * @swagger
@@ -116,10 +132,12 @@ router.delete('/:id',accessTokenVarify,checkRole('user'),deleteCart)
  *         description: updated cart by id  successfully
  *
  */
-router.put('/:id',accessTokenVarify,checkRole('user'),incrementCartValidation,IncreAndDecre)
+router.put(
+  '/:id',
+  accessTokenVarify,
+  checkRole('user'),
+  incrementCartValidation,
+  IncreAndDecre,
+);
 
-
-
-
-
-module.exports = router
+module.exports = router;

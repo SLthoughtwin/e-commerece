@@ -117,7 +117,7 @@ router.post(
  *
  */
 
-router.get('/', accessTokenVarify, checkRole(seller,admin,userRole), showProduct);
+router.get('/', accessTokenVarify, checkRole(seller,admin,userRole,"public"), showProduct);
 
 /**
  * @swagger

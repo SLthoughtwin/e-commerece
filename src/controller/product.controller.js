@@ -1,14 +1,14 @@
 const { User, Product, CloudId, Brand, Category } = require('./../models/');
 const objectID = require('mongodb').ObjectId;
 const {
-  uploadImage,
-  uploadfile,
+ 
   deleteImageFromCloud,
   checkFilter,
+  
 } = require('../middleware');
 const { userRole, seller, admin } = require('../config/');
 const { productFields } = require('../services/');
-const { createProduct } = require('.');
+// const { createProduct } = require('.');
 
 exports.createProduct = async (req, res) => {
   try {
@@ -137,14 +137,7 @@ exports.updateProduct = async (req, res) => {
 
 exports.showProduct = async (req, res) => {
   try {
-    const user = await User.findOne({ _id: req.userid });
-    if (!user) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'inavlid id',
-      });
-    }
-    if (user.role === seller) {
+    if (req.user.role === seller) {
       const { page = 1, limit = 5 } = req.query;
       const filter = checkFilter(req, res);
       if (filter === false) {
@@ -173,8 +166,7 @@ exports.showProduct = async (req, res) => {
         });
       }
     }
-
-    if (user.role === userRole) {
+    if (req.user.role === userRole || req.user.role === "public" ) {
       const { page = 1, limit = 5 } = req.query;
       const filter = checkFilter(req, res);
       if (filter === false) {
@@ -196,6 +188,8 @@ exports.showProduct = async (req, res) => {
           .populate('brandId', 'brand_name')
           .populate('createBy', 'fullName')
           .populate('image', 'image.image_url');
+        // console.log(result)
+        
         return res.status(200).json({
           statusCode: 200,
           message: 'product found successfully',

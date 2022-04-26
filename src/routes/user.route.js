@@ -8,7 +8,7 @@ const {
   createAccessRefreshTokenToUser,
   signUPUser,
   logoutUser,
-  updateUser
+  updateUser,
 } = require('../controller/');
 const {
   signUpSellerValidation,
@@ -198,6 +198,6 @@ router.get('/:token', userVarified);
  *
  *
  */
-router.post('/updateUser',updateUser);
+router.post('/updateUser', updateUser);
 
 module.exports = router;

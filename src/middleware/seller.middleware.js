@@ -184,7 +184,7 @@ exports.deleteImageFromCloud = async (cloud_id) => {
     const JoiSchema = Joi.object({
       fullName: Joi.string().min(3).max(30).required().trim(),
       email: Joi.string().email().required().trim(),
-      phone: Joi.number(),
+      phone: Joi.number().min(10).required(),
       password: Joi.string().min(6).max(30).required().trim(),
     }).or('fullName', 'email', 'phone');
     return JoiSchema.validate(user);
@@ -221,14 +221,6 @@ exports.deleteImageFromCloud = async (cloud_id) => {
   });
 
 (exports.accessTokenVarify = (req, res, next) => {
-  //   if(!req.query.token){
-  //     return res.status(400).json({
-  //       message: 'A token is required for authentication',
-  //       status: 400,
-  //
-  //    })
-  //  }
-
   const chickToken = (req) => {
     if (req.query.token) {
       return req.query.token;
@@ -242,10 +234,19 @@ exports.deleteImageFromCloud = async (cloud_id) => {
   };
   const token = chickToken(req);
   if (token === false) {
+  const checkRoute =  this.checkPublicRole(req)
+  if(!checkRoute){
     return res.status(400).json({
       statusCode: 400,
       message: 'A token is required for authentication',
     });
+  }else{
+    next()
+  }
+    // return res.status(400).json({
+    //   statusCode: 400,
+    //   message: 'A token is required for authentication',
+    // });
   } else {
     // const authHeader = req.headers.authorization;
     // const bearerToken = authHeader.split(' ');
@@ -259,7 +260,13 @@ exports.deleteImageFromCloud = async (cloud_id) => {
       } else {
         const userid = payload.aud;
         const result = await User.findOne({ _id: userid });
-        // console.log(result)
+        if(!result){
+          return res.status(400).json({
+            statusCode: 400,
+            message : "no user found this token"
+          })
+        }
+        req.user =result
         req.userid = payload.aud;
         req.uid = result.role;
         next();
@@ -319,11 +326,11 @@ exports.deleteImageFromCloud = async (cloud_id) => {
 exports.checkRole =
   (...roles) =>
   (req, res, next) => {
-    const { uid } = req;
-    if (!roles.includes(uid)) {
+    const role = req.user.role;
+    if (!roles.includes(role)) {
       return res.status(404).json({
         statusCode: 400,
-        message: `you are not authorised ${uid} to access this api`,
+        message: `you are not authorised ${role} to access this api`,
       });
     }
     return next();
@@ -414,11 +421,10 @@ exports.addCartValidation = (req, res, next) => {
 exports.incrementCartValidation = (req, res, next) => {
   const validateUser = (user) => {
     const JoiSchema = Joi.object({
-      value: Joi.string().required().trim().valid('increment', 'decrement'),
+      value:Joi.string().required().valid('increment',"decrement"),
     });
     return JoiSchema.validate(user);
   };
-
   const response = validateUser(req.query);
   if (response.error) {
     res.status(400).json({
@@ -429,3 +435,13 @@ exports.incrementCartValidation = (req, res, next) => {
     next();
   }
 };
+
+const publicUrl = [{
+  baseUrl:'/v1/product',
+  method:'GET'}]
+  exports.checkPublicRole = (req)=>{
+    req.user = {role:"public"}
+   return publicUrl.find((element)=> {
+    return element.baseUrl === req.baseUrl && element.method === req.method
+  })
+  }
