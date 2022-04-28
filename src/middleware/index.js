@@ -15,7 +15,11 @@ const {
   uploadfileInCloud,
   addCartValidation,
   incrementCartValidation,
-  checkPublicRole
+  checkPublicRole,
+  reviewValidation,
+  reviewDeleteValidation,
+  editReviewValidation,
+  uploadFileToCloud
 } = require('./seller.middleware');
 const {
   adminValidation,
@@ -47,5 +51,9 @@ module.exports = {
   incrementCartValidation,
   orderValidation,
   createOrderValidation,
-  checkPublicRole
+  checkPublicRole,
+  reviewValidation,
+  reviewDeleteValidation,
+  editReviewValidation,
+  uploadFileToCloud
 };

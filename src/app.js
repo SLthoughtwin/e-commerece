@@ -20,8 +20,11 @@ const {
 const swaggerUI = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
 const { logger } = require('./shared/');
-const { errorHandler, checkvar } = require('./config/errorhandler');
+const {  checkvar } = require('./config/errorhandler');
+const{ errorHandler,responseHandler } = require('./config/')
 const rateLimit = require('express-rate-limit');
+const { dir } = require('console');
+const { dirname } = require('path');
 const limiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 100,
@@ -43,7 +46,6 @@ app.use(function (req, res, next) {
 
   next();
 });
-app.use(errorHandler);
 app.use(setTimeout);
 app.use(express.urlencoded({ extended: false }));
 app.use(cors({ origin: 'http://localhost:3000' }));
@@ -60,24 +62,10 @@ app.use('/v1/category', categoryRoute);
 app.use('/v1/cart/', cartRoute);
 app.use('/v1/order/', orderRoute);
 app.use('/v1/review/', reviewRoute);
-
-app.use((req, res, next) => {
-  const error = new Error('not found');
-  error.status(404);
-  next(error);
-});
-
-app.use((error, req, res, next) => {
-  res.status(error.status || 500).json({
-    error: {
-      message: error.message,
-    },
-  });
-});
-
+app.use(errorHandler);
 const envVariable = checkvar('PORT');
 if (envVariable === undefined) {
-  logger.info(`env variable are not found`);
+  return logger.info(`env variable are not found`);
 }
 connection()
   .then((data) => {

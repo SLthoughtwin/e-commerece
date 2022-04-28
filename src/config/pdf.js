@@ -3,10 +3,10 @@ const fs = require('fs');
 const path = require('path');
 const html = fs.readFileSync(
   path.resolve(__dirname, '../../views/pdf.html'),
-  'utf8',
+  'utf8'
 );
 const options = {
-  format: 'A3',
+  format: 'A4',
   orientation: 'portrait',
   border: '10mm',
   header: {
@@ -26,11 +26,24 @@ const options = {
 };
 
 exports.sendPdf = (data) => {
-  const array = new Array(data);
+  let array =[];
+  let totalAmount = 0
+  console.log(data.products)
+  for(i of data.products){
+    obj = {title:i.productId.title,price:i.price,quantity:i.quantity}
+    array.push(obj)
+    totalAmount+=(i.price*i.quantity)
+  }
+  const address =[]
+  address.push({country:data.addressId.country,state:data.addressId.state})
+  
   const document = {
     html: html,
     data: {
-      users: data,
+      address,
+      name:data.userId.fullName,
+      users: array,
+      totalAmount
     },
     path: './output.pdf',
     type: '',

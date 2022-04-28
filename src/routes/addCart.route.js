@@ -3,7 +3,7 @@ const {
   createCart,
   showCart,
   deleteCartItems,
-  IncreAndDecre,
+  IncrementAndDecrement,
   deleteCart,
 } = require('../controller/');
 const router = express();
@@ -137,7 +137,7 @@ router.put(
   accessTokenVarify,
   checkRole('user'),
   incrementCartValidation,
-  IncreAndDecre,
+  IncrementAndDecrement,
 );
 
 module.exports = router;

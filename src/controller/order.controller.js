@@ -3,6 +3,7 @@ const objectID = require('mongodb').ObjectId;
 // const { uploadfile} = require('../middleware')
 const ApiError = require('../config/apierror');
 const { sendPdf } = require('../config');
+const { createInvoice } = require("../config/createInvoice");
 
 exports.createOrder = async (req, res, next) => {
   try {
@@ -62,7 +63,8 @@ exports.createOrder = async (req, res, next) => {
       .populate('userId', 'fullName')
       .populate('addressId')
       .populate('products.productId');
-    // await sendPdf(getOrder);
+      // console.log(findUserDetails.products)
+   await createInvoice(findUserDetails);
     return res.status(200).json({
       statusCode: 200,
       message: 'PlaceOrder successfully',

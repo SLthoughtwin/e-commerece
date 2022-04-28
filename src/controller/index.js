@@ -59,7 +59,7 @@ const {
   showCart,
   createCart,
   deleteCartItems,
-  IncreAndDecre,
+  IncrementAndDecrement,
   deleteCart,
 } = require('./addCart.controller');
 const {
@@ -75,6 +75,7 @@ const {
   deleteReview,
   createReview,
   getReview,
+  editReview
 } = require('./review.controller');
 
 module.exports = {
@@ -120,7 +121,7 @@ module.exports = {
   showCart,
   createCart,
   deleteCartItems,
-  IncreAndDecre,
+  IncrementAndDecrement,
   deleteCart,
   deleteSellerByAdmin,
   getAllUser,
@@ -132,4 +133,5 @@ module.exports = {
   deleteReview,
   createReview,
   getReview,
+  editReview,
 };

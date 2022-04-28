@@ -1,12 +1,16 @@
 const express = require('express');
 const router = express();
 
+const { createReview, deleteReview, getReview,editReview } = require('../controller');
 const {
-   createReview,
-   deleteReview,
-   getReview
-} = require('../controller');
-const{accessTokenVarify,checkRole,uploadImage,uploadfile} = require('../middleware/')
+  accessTokenVarify,
+  checkRole,
+  uploadImage,
+  uploadfile,
+  reviewValidation,
+  reviewDeleteValidation,
+  editReviewValidation
+} = require('../middleware/');
 
 /**
  * @swagger
@@ -33,14 +37,13 @@ const{accessTokenVarify,checkRole,uploadImage,uploadfile} = require('../middlewa
  *                  votes: Number }]
  */
 
-
 /**
  * @swagger
  * /v1/review/{id}:
  *   post:
  *     summary: create review
  *     tags: [review]
- *     parameters: 
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:
@@ -59,13 +62,20 @@ const{accessTokenVarify,checkRole,uploadImage,uploadfile} = require('../middlewa
  *
  *
  */
-router.post('/:id',uploadImage,accessTokenVarify,checkRole('user'),uploadfile,createReview)
+router.post(
+  '/:id',
+  uploadImage,
+  accessTokenVarify,
+  checkRole('user'),
+  reviewValidation,
+  createReview,
+);
 
 /**
  * @swagger
  * /v1/order:
  *   delete:
- *     summary: create delete 
+ *     summary: create delete
  *     tags: [review]
  *     responses:
  *       200:
@@ -74,13 +84,13 @@ router.post('/:id',uploadImage,accessTokenVarify,checkRole('user'),uploadfile,cr
  *
  *
  */
-router.delete('/:id',accessTokenVarify,checkRole('user'),deleteReview)
+router.delete('/:id', accessTokenVarify, checkRole('user'), reviewDeleteValidation,deleteReview);
 
 /**
  * @swagger
  * /v1/order/{id}:
  *   get:
- *     summary: create delete 
+ *     summary: create delete
  *     tags: [order]
  *     parameters:
  *      - in: path
@@ -92,5 +102,14 @@ router.delete('/:id',accessTokenVarify,checkRole('user'),deleteReview)
  *         description: delete order successfully
  *
  */
-router.get('/:id',accessTokenVarify,checkRole('user'),getReview)
-module.exports = router
+router.get('/:id', accessTokenVarify, checkRole('user'), getReview);
+
+router.put(
+   '/:id',
+   uploadImage,
+   accessTokenVarify,
+   checkRole('user'),
+   editReviewValidation,
+   editReview,
+ );
+module.exports = router;

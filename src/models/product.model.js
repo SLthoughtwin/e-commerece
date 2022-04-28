@@ -41,6 +41,8 @@ const productSchema = new mongoose.Schema(
     type: Boolean,
     default: false
   },
+  review:[{type:mongoose.Schema.Types.ObjectId ,ref:"Review"}],
+  averageRating : Number
   },
   { timestamps: true });
 

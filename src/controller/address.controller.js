@@ -17,7 +17,7 @@ exports.createAddress = async (req, res) => {
       req.body.userId = result.id;
       req.body.isDefault = true;
       const create = await UserAddress.create(req.body);
-      return (200).json({
+      return res.status(200).json({
         statusCode: 200,
         message: 'address  create successfully',
         data: create,

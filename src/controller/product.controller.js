@@ -40,13 +40,13 @@ exports.createProduct = async (req, res) => {
         message: 'this brand is not available',
       });
     }
-    const result = await User.findOne({ _id: req.userid });
-    if (!result) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'please insert valid sellerId',
-      });
-    }
+    // const result = await User.findOne({ _id: req.userid });
+    // if (!result) {
+    //   return res.status(400).json({
+    //     statusCode: 400,
+    //     message: 'please insert valid sellerId',
+    //   });
+    // }
     req.body.createBy = req.userid;
     const cloud_public_id = req.cloudId;
     const image_url = req.imageurl;
@@ -56,14 +56,14 @@ exports.createProduct = async (req, res) => {
     const result_cloud = await CloudId.create(data);
     createproduct.image = result_cloud.id;
     await createproduct.save();
-    console.log(createproduct.id);
+    // console.log(createproduct.id);
     const newCreateProduct = await Product.findOne({ _id: createproduct.id })
       .populate('createBy', 'fullName')
       .populate('categoryId', 'category_name')
       .populate('brandId', 'brand_name')
       .populate('image', 'image.image_url');
     return res.status(200).json({
-      createproduct: newCreateProduct,
+      data: newCreateProduct,
       message: 'create product successfully',
       succes: true,
     });
@@ -224,10 +224,9 @@ exports.showProduct = async (req, res) => {
         .populate('createBy', 'fullName')
         .populate('image', 'image.image_url');
       return res.status(200).json({
+        statusCode:200,
         message: 'product found successfully',
-        totalProduct: result.length,
-        succes: true,
-        address: result,
+        data: result,
       });
     }
   } catch (error) {

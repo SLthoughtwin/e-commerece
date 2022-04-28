@@ -7,7 +7,7 @@ const path = require('path');
 const cloudinary = require('cloudinary').v2;
 const { cloud_name, cloud_key, cloud_secret } = require('../config/');
 const { includes, filter, split } = require('lodash');
-const { array, valid } = require('joi');
+const { array, valid, required } = require('joi');
 // const res = require('express/lib/response');
 
 const storage = multer.diskStorage({
@@ -134,7 +134,7 @@ exports.uploadfileInCloud = async (req, folder = 'image-directory') => {
   return result;
 };
 
-exports.uploadfile = async (req, res, next) => {
+exports.uploadfile = async (req, folder="newFolder", next) => {
   if (req.files) {
     const imageArray = req.files;
     cloudinary.config({
@@ -143,13 +143,13 @@ exports.uploadfile = async (req, res, next) => {
       api_secret: cloud_secret,
       secure: true,
     });
-    const imgarray = [];
+    let imgarray = [] ;
     for (x of imageArray) {
       const fileName = x.destination + '/' + x.filename;
       await cloudinary.uploader.upload(
         fileName,
         {
-          folder: 'test-directory',
+          folder,
           use_filename: true,
         },
         function (error, result) {
@@ -175,7 +175,7 @@ exports.deleteImageFromCloud = async (cloud_id) => {
     secure: true,
   });
   await cloudinary.uploader.destroy(cloud_id, function (error, result) {
-    console.log(result, error);
+    // console.log(error,result );
   });
 };
 
@@ -445,3 +445,99 @@ const publicUrl = [{
     return element.baseUrl === req.baseUrl && element.method === req.method
   })
   }
+
+
+  exports.reviewValidation = (req, res, next) => {
+        req.body.productId = req.params.id
+        const JoiSchema = Joi.object({
+        productId:Joi.string().hex().length(24).messages({'string.hex':"id must be correct format"}).required(),
+        comments:Joi.string().min(6).max(150).required(),
+        rating:Joi.number().min(1).max(5).required(),
+        avatar: Joi.string()
+      });
+      const response =  JoiSchema.validate(req.body);
+    if (response.error) {
+      const msg =  response.error.details[0].message.replace(/[^a-zA-Z0-9]/g," ")
+      res.status(400).json({
+        statusCode: 400,
+        message:msg
+      });
+    } else {
+      next();
+    }
+  }
+
+  exports.reviewDeleteValidation = (req, res, next) => {
+    req.body.reviewId = req.params.id
+    const JoiSchema = Joi.object({
+    reviewId:Joi.string().hex().length(24).messages({'string.hex':"id must be correct format"}).required(),
+  });
+  const response =  JoiSchema.validate(req.body);
+if (response.error) {
+  const msg =  response.error.details[0].message.replace(/[^a-zA-Z0-9]/g," ")
+  res.status(400).json({
+    statusCode: 400,
+    message:msg
+  });
+} else {
+  next();
+}
+}
+
+
+exports.editReviewValidation = (req, res, next) => {
+  req.body.reviewId = req.params.id
+  const JoiSchema = Joi.object({
+  reviewId:Joi.string().hex().length(24).messages({'string.hex':"id must be correct format"}).required(),
+  comments:Joi.string().min(6).max(300),
+  rating:Joi.number().min(1).max(5),
+  avatar: Joi.string()
+});
+const response =  JoiSchema.validate(req.body);
+if (response.error) {
+const msg =  response.error.details[0].message.replace(/[^a-zA-Z0-9]/g," ")
+res.status(400).json({
+  statusCode: 400,
+  message:msg
+});
+} else {
+next();
+}
+}
+
+
+exports.uploadFileToCloud= async (req,folder="newFolder") => {
+  if (req.files) {
+    const imageArray = req.files;
+    cloudinary.config({
+      cloud_name: cloud_name,
+      api_key: cloud_key,
+      api_secret: cloud_secret,
+      secure: true,
+    });
+    let imgarray = [] ;
+    for (x of imageArray) {
+      const fileName = x.destination + '/' + x.filename;
+      await cloudinary.uploader.upload(
+        fileName,
+        {
+          folder,
+          use_filename: true,
+        },
+        function (error, result) {
+          imgarray.push({
+            image_url: result.url,
+            cloud_public_id: result.public_id,
+          });
+        },
+      );
+    }
+   return req.imgarray = imgarray;
+  } else {
+    return undefined
+  }
+};
+
+exports.populate = async(...rest)=>{
+   
+}

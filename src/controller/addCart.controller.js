@@ -1,6 +1,6 @@
 const { User, Category, Brand, addCart, Product } = require('./../models/');
-// const Redis = require("ioredis");
-// const redis = new Redis();
+const {responseHandler} = require('../config/')
+const ApiError = require('../config/apierror');
 const objectID = require('mongodb').ObjectId;
 const { addCartValidation } = require('../middleware/');
 
@@ -16,23 +16,14 @@ exports.createCart = async (req, res) => {
         newId  = element.productId.toString().replace(/new ObjectId/, "");
        return productId === newId})
       if(findCartItem){
-        return res.status(404).json({
-          statusCode: 400,
-          message: `this product already available... Id:${productId}`,
-        });
+        return next(new ApiError(409,`this product already ... Id:${productId}`))
       }
       const findProduct = await Product.findOne({ _id: productId });
       if (!findProduct) {
-        return res.status(404).json({
-          statusCode: 400,
-          message: `this product is not available... Id:${productId}`,
-        });
+        return next(new ApiError(404,`this product is not available... Id:${productId}`))
       }
       if (quantity > findProduct.quantity) {
-        return res.status(404).json({
-          statusCode: 400,
-          message: `out of stoke this :${productId}`,
-        });
+        return next(new ApiError(404,`out of stoke this :${productId}`))
       }
       const amount = parseInt(findProduct.price * quantity);
       i.price = amount;
@@ -42,30 +33,18 @@ exports.createCart = async (req, res) => {
     let createCart;
     if (!findCart) {
       createCart = await addCart.create(req.body);
-      return res.status(200).json({
-        statusCode: 200,
-        message: 'add cart successfully....',
-        data: createCart,
-      });
+      return responseHandler(201,'add cart successfully',res,createCart)
     }
     for (i of products) {
       findCart.products.push(i);
     }
     createCart = await findCart.save();
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'add cart successfully....',
-      data: createCart,
-    });
+    return responseHandler(201,'add cart successfully',res,createCart)
   } catch (error) {
-    console.log(error);
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400,error.message))
   }
 };
-exports.IncreAndDecre = async (req, res) => {
+exports.IncrementAndDecrement = async (req, res) => {
   try {
     // console.log(req.query)
     if (objectID.isValid(req.params.id) === false) {
@@ -102,7 +81,7 @@ exports.IncreAndDecre = async (req, res) => {
           message: `this product is not available... Id:${productId}`,
         });
       }
-      if(value=="increment"){
+      if(value==="increment"){
        quantity += 1
        if (quantity > findProduct.quantity) {
         return res.status(404).json({
