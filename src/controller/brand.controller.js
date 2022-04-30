@@ -1,5 +1,6 @@
 const { User, Category, Brand } = require('./../models/');
-
+const ApiError = require('../config/apierror');
+const {responseHandler} = require('../config/')
 const objectID = require('mongodb').ObjectId;
 
 const {
@@ -8,14 +9,13 @@ const {
   deleteImageFromCloud,
 } = require('../middleware/');
 
-exports.createBrand = async (req, res) => {
+// return next(new ApiError(400,'admin already exist'))
+// return responseHandler(200,"login successfully",res,accesstoken)
+exports.createBrand = async (req, res, next) => {
   try {
     const result = await Brand.findOne({ brand_name: req.body.brand_name });
     if (result) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'this brand already exist',
-      });
+      return next(new ApiError(400,'this brand already exist'))
     }
     if (req.files.length === 1) {
       const image = await uploadfileInCloud(req);
@@ -23,60 +23,34 @@ exports.createBrand = async (req, res) => {
       req.body.imageId = image.public_id;
     }
     const createBrand = await Brand.create(req.body);
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'create brand successfully',
-      data: createBrand,
-    });
+    return responseHandler(200,"create brand successfully",res,createBrand)
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400,error.message))
   }
 };
-exports.updateBrand = async (req, res) => {
+exports.updateBrand = async (req, res,next) => {
   try {
-    if (objectID.isValid(req.params.id) === false) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'brand id must be correct format',
-      });
-    }
-
-    const result = await Brand.findOne({ _id: req.params.id });
+   const result = await Brand.findOne({ _id: req.params.id });
     if (!result) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'inavalid  brand id',
-      });
+      return next(new ApiError(404,'invalid  brand id'))
     }
     if (req.files) {
       await deleteImageFromCloud(result.imageId);
-
       const image = await uploadfileInCloud(req);
       req.body.image = image.url;
       req.body.imageId = image.public_id;
     }
-
     const updateBrand = await Brand.findOneAndUpdate(
       { _id: req.params.id },
       req.body,
       { new: true },
     );
-    return res.status(200).json({
-      statusCode: 400,
-      message: 'update brand successfully',
-      data: updateBrand,
-    });
+    return responseHandler(200,"update brand successfully",res,updateBrand)
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400,error.message))
   }
 };
-exports.showBrandById = async (req, res) => {
+exports.showBrandById = async (req,res,next) => {
   try {
     if (objectID.isValid(req.params.id) === false) {
       return res.status(400).json({

@@ -2,13 +2,20 @@ const express = require('express');
 const router = express();
 
 const {
-    createBrand,
-    updateBrand,
-    showBrand,
-    showBrandById,
-    deleteBrand,
-  } = require('../controller');
-const {accessTokenVarify,checkRole,uploadImage1,uploadfile,brandValidation} = require('../middleware')
+  createBrand,
+  updateBrand,
+  showBrand,
+  showBrandById,
+  deleteBrand,
+} = require('../controller');
+const {
+  accessTokenVarify,
+  checkRole,
+  uploadImage1,
+  uploadfile,
+  brandValidation,
+  checkIdFormat
+} = require('../middleware');
 
 /**
  * @swagger
@@ -33,12 +40,11 @@ const {accessTokenVarify,checkRole,uploadImage1,uploadfile,brandValidation} = re
  *                  description : This item is made of transparent glass
  */
 
-
 /**
  * @swagger
  * /v1/brand:
  *   post:
- *     summary: create brand 
+ *     summary: create brand
  *     tags: [brand]
  *     requestBody:
  *         required: true
@@ -54,7 +60,14 @@ const {accessTokenVarify,checkRole,uploadImage1,uploadfile,brandValidation} = re
  *
  *
  */
-router.post('/',uploadImage1,accessTokenVarify,checkRole('admin'),brandValidation,createBrand)
+router.post(
+  '/',
+  uploadImage1,
+  accessTokenVarify,
+  checkRole('admin'),
+  brandValidation,
+  createBrand,
+);
 
 /**
  * @swagger
@@ -79,8 +92,15 @@ router.post('/',uploadImage1,accessTokenVarify,checkRole('admin'),brandValidatio
  *
  *
  */
-router.put('/:id',uploadImage1,accessTokenVarify,checkRole('admin'),brandValidation,updateBrand)
-
+router.put(
+  '/:id',
+  uploadImage1,
+  accessTokenVarify,
+  checkRole('admin'),
+  checkIdFormat,
+  brandValidation,
+  updateBrand,
+);
 
 /**
  * @swagger
@@ -100,7 +120,7 @@ router.put('/:id',uploadImage1,accessTokenVarify,checkRole('admin'),brandValidat
  *
  *
  */
-router.get('/',accessTokenVarify,checkRole('admin'),showBrand)
+router.get('/', accessTokenVarify, checkRole('admin'), showBrand);
 /**
  * @swagger
  * /v1/brand/{id}:
@@ -119,7 +139,7 @@ router.get('/',accessTokenVarify,checkRole('admin'),showBrand)
  *
  *
  */
-router.get('/:id',accessTokenVarify,checkRole('admin'),showBrandById)
+router.get('/:id', accessTokenVarify, checkRole('admin'), showBrandById);
 
 /**
  * @swagger
@@ -139,6 +159,6 @@ router.get('/:id',accessTokenVarify,checkRole('admin'),showBrandById)
  *
  *
  */
-router.delete('/:id',accessTokenVarify,checkRole('admin'),deleteBrand)
+router.delete('/:id', accessTokenVarify, checkRole('admin'), deleteBrand);
 
 module.exports = router;

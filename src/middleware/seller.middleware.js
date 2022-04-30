@@ -8,6 +8,9 @@ const cloudinary = require('cloudinary').v2;
 const { cloud_name, cloud_key, cloud_secret } = require('../config/');
 const { includes, filter, split } = require('lodash');
 const { array, valid, required } = require('joi');
+const {responseHandler} = require('../config/')
+const ApiError = require('../config/apierror');
+const objectID = require('mongodb').ObjectId;
 // const res = require('express/lib/response');
 
 const storage = multer.diskStorage({
@@ -419,15 +422,17 @@ exports.addCartValidation = (req, res, next) => {
 };
 
 exports.incrementCartValidation = (req, res, next) => {
+  req.body.id = req.params.id
   const validateUser = (user) => {
     const JoiSchema = Joi.object({
+      id:Joi.string().hex().length(24),
       value:Joi.string().required().valid('increment',"decrement"),
     });
     return JoiSchema.validate(user);
   };
   const response = validateUser(req.query);
   if (response.error) {
-    res.status(400).json({
+   return res.status(400).json({
       statusCode: 400,
       message: response.error.details[0].message,
     });
@@ -538,6 +543,11 @@ exports.uploadFileToCloud= async (req,folder="newFolder") => {
   }
 };
 
-exports.populate = async(...rest)=>{
-   
+exports.checkIdFormat = async(req,res,next)=>{
+  if (objectID.isValid(req?.params.id) === false) {
+    return next(new ApiError(400,'id must be correct format'))
+  }
+  next()
 }
+// return next(new ApiError(400,'admin already exist'))
+// return responseHandler(200,"login successfully",res,accesstoken)

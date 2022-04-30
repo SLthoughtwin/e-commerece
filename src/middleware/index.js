@@ -19,7 +19,8 @@ const {
   reviewValidation,
   reviewDeleteValidation,
   editReviewValidation,
-  uploadFileToCloud
+  uploadFileToCloud,
+  checkIdFormat
 } = require('./seller.middleware');
 const {
   adminValidation,
@@ -55,5 +56,6 @@ module.exports = {
   reviewValidation,
   reviewDeleteValidation,
   editReviewValidation,
-  uploadFileToCloud
+  uploadFileToCloud,
+  checkIdFormat
 };

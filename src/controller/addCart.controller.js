@@ -4,7 +4,7 @@ const ApiError = require('../config/apierror');
 const objectID = require('mongodb').ObjectId;
 const { addCartValidation } = require('../middleware/');
 
-exports.createCart = async (req, res) => {
+exports.createCart = async (req, res,next) => {
   try {
     let findCart = await addCart.findOne({ userId: req.userid }).exec();
     const { products } = req.body;
@@ -44,87 +44,51 @@ exports.createCart = async (req, res) => {
     return next(new ApiError(400,error.message))
   }
 };
-exports.IncrementAndDecrement = async (req, res) => {
+exports.IncrementAndDecrement = async (req, res ,next) => {
   try {
-    // console.log(req.query)
-    if (objectID.isValid(req.params.id) === false) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'id must be correct format',
-      });
-    }
     const {value} = req.query
     const result = await addCart.findOne({ userId: req.userid });
     if (!result) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'inavalid cart id',
-      });
+      return next(new ApiError(401,'invalid cart id'))
     }
     const findCartObjId = result.products.find((curr)=>{
       const newId = curr.id
-     return req.params.id == newId
+     return req.body.id == newId
     })
     if(!findCartObjId)
     {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'inavalid cart object id',
-      });
+      return next(new ApiError(401,'invalid cart object id'))
     }
     const productId = findCartObjId.productId
     let quantity = findCartObjId.quantity
       const findProduct = await Product.findOne({ _id: findCartObjId.productId });
       if (!findProduct) {
-        return res.status(404).json({
-          statusCode: 400,
-          message: `this product is not available... Id:${productId}`,
-        });
+        return next(new ApiError(404,`this product is not available... Id:${productId}`)) 
       }
       if(value==="increment"){
        quantity += 1
        if (quantity > findProduct.quantity) {
-        return res.status(404).json({
-          statusCode: 400,
-          message: `out of stoke this Id:${productId}`,
-        });
+        return next(new ApiError(404,`out of stoke this Id:${productId}`)) 
       }
-        const result1 = await addCart.findOneAndUpdate({userId:req.userid,'products._id':req.params.id},
+        const result1 = await addCart.findOneAndUpdate({userId:req.userid,'products._id':req.body.id},
         {'$set':{'products.$.quantity':quantity}},{new:true})
-        return res.status(200).json({
-         statusCode: 200,
-         message: 'update cartItems successfully',
-         data:result1
-       
-       });
+       return responseHandler(200,"update cartItems successfully",res,result1)
       }
 
       if(value === "decrement"){
         quantity -= 1
         if (quantity === 0) {
-         return res.status(404).json({
-           statusCode: 400,
-           message: `quantity cant not 0`,
-         });
+         return next(new ApiError(400,`quantity cant not 0`))
        }
-       const result1 = await addCart.findOneAndUpdate({userId:req.userid,'products._id':req.params.id},
+       const result1 = await addCart.findOneAndUpdate({userId:req.userid,'products._id':req.body.id},
        {'$set':{'products.$.quantity':quantity}},{new:true})
-         return res.status(200).json({
-          statusCode: 200,
-          message: 'update cartItems successfully',
-          data:result1
-        
-        });
+         return responseHandler(200,"update cartItems successfully",res,result1)
       }
    }catch (error) {
-    console.log(error);
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400,error.message))
   }
 };
-exports.showCart = async (req, res) => {
+exports.showCart = async (req, res,next) => {
   try {
     const result = await addCart
       .find({ userId: req.userid })
@@ -134,78 +98,35 @@ exports.showCart = async (req, res) => {
       price += i.productId.price * i.quantity;
     }
     if (!result) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'there is no cart',
-      });
+      return next(new ApiError(400,'there is no cart'))
     }
-    return res.status(200).json({
-      statusCode: 200,
-      message: `data found / total price for ${result.length} items : ${price}`,
-      data: result,
-    });
+    return responseHandler(200,`data found / total price for ${result.length} items : ${price}`,res,result)
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400,error.message))
   }
 };
-exports.deleteCartItems = async (req, res) => {
+exports.deleteCartItems = async (req, res,next) => {
   try {
-    if (objectID.isValid(req.params.id) === false) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'cart id must be correct format',
-      });
-    }
     const findCart = await addCart.findOne({ userId: req.userid });
     const result = await addCart.findOneAndUpdate({
       $pull: { products: { _id: req.params.id } },
     });
     if (!result) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'there is no items releted this id',
-      });
+      return next(new ApiError(404,'there is no items related this id'))
     }
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'delete cart items successfully',
-      data: result,
-    });
+    return responseHandler(200,"delete cart items successfully",res,result)
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400,error.message))
   }
 };
-exports.deleteCart = async (req, res) => {
+exports.deleteCart = async (req,res,next) => {
   try {
-    if (objectID.isValid(req.params.id) === false) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'cart id must be correct format',
-      });
-    }
-
     const result = await addCart.findOneAndDelete({ _id: req.params.id });
     if (!result) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'there is no cart releted this id',
-      });
+      return next(new ApiError(404,'there is no cart related this id'))
     }
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'delete allcart successfully',
-      data: result,
-    });
+    return responseHandler(200,"delete cart successfully",res,result)
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400,error.message))
   }
 };

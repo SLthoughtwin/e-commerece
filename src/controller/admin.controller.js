@@ -47,7 +47,7 @@ exports.adminLogin = async (req, res,next) => {
   }
 };
 
-exports.approvedAndRejectSellerByAdmin = async (req, res) => {
+exports.approvedAndRejectSellerByAdmin = async (req, res,next) => {
   try {
     if (objectID.isValid(req.body.id) === false) {
       return next(new ApiError(400,'id must be correct format'))
@@ -73,7 +73,7 @@ exports.approvedAndRejectSellerByAdmin = async (req, res) => {
   }
 };
 
-exports.getAllseller = async (req, res) => {
+exports.getAllseller = async (req,res,next) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const { email = '' } = req.body;
@@ -95,7 +95,7 @@ exports.getAllseller = async (req, res) => {
   }
 };
 
-exports.getAllUser = async (req, res) => {
+exports.getAllUser = async (req, res,next) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const { email = '' } = req.body;
@@ -117,7 +117,7 @@ exports.getAllUser = async (req, res) => {
   }
 };
 
-exports.deleteSellerByAdmin = async (req, res) => {
+exports.deleteSellerByAdmin = async (req, res,next) => {
   try {
     if (objectID.isValid(req.body.id) === false) {
       return next(new ApiError(400,'id must be correct format'))
@@ -132,7 +132,7 @@ exports.deleteSellerByAdmin = async (req, res) => {
   }
 };
 
-exports.productApprovedAndRejectByadmin = async (req, res) => {
+exports.productApprovedAndRejectByadmin = async (req, res,next) => {
   try {
     if (objectID.isValid(req.body.id) === false) {
       return next(new ApiError(400,'id must be correct format'))

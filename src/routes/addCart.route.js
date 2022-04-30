@@ -13,6 +13,7 @@ const {
   accessTokenVarify,
   checkRole,
   incrementCartValidation,
+  checkIdFormat,
 } = require('../middleware');
 
 /**
@@ -87,7 +88,7 @@ router.get('/', accessTokenVarify, checkRole('user'), showCart);
  *         description: delete cart by id  successfully
  *
  */
-router.delete('/:id', accessTokenVarify, checkRole('user'), deleteCartItems);
+router.delete('/:id', accessTokenVarify, checkRole('user'), checkIdFormat,deleteCartItems);
 
 /**
  * @swagger
@@ -109,6 +110,7 @@ router.delete(
   '/deleteAll/:id',
   accessTokenVarify,
   checkRole('user'),
+  checkIdFormat,
   deleteCart,
 );
 
