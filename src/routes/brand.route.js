@@ -12,10 +12,9 @@ const {
   accessTokenVarify,
   checkRole,
   uploadImage1,
-  uploadfile,
-  brandValidation,
-  checkIdFormat
+  checkIdFormat,
 } = require('../middleware');
+const{brandValidation} = require('../validations')
 
 /**
  * @swagger
@@ -139,7 +138,13 @@ router.get('/', accessTokenVarify, checkRole('admin'), showBrand);
  *
  *
  */
-router.get('/:id', accessTokenVarify, checkRole('admin'), showBrandById);
+router.get(
+  '/:id',
+  accessTokenVarify,
+  checkRole('admin'),
+  checkIdFormat,
+  showBrandById,
+);
 
 /**
  * @swagger
@@ -159,6 +164,12 @@ router.get('/:id', accessTokenVarify, checkRole('admin'), showBrandById);
  *
  *
  */
-router.delete('/:id', accessTokenVarify, checkRole('admin'), deleteBrand);
+router.delete(
+  '/:id',
+  accessTokenVarify,
+  checkRole('admin'),
+  checkIdFormat,
+  deleteBrand,
+);
 
 module.exports = router;

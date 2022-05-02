@@ -8,8 +8,8 @@ const {
   deleteAddress,
   axiosTest,
 } = require('../controller/');
-const { adderssValidation,accessTokenVarify } = require('../middleware/');
-
+const { accessTokenVarify } = require('../middleware/');
+const { adderssValidation } = require('../validations');
 /**
  * @swagger
  * /v1/address:
@@ -69,7 +69,7 @@ const { adderssValidation,accessTokenVarify } = require('../middleware/');
  *
  */
 
-router.post('/', accessTokenVarify,adderssValidation, createAddress);
+router.post('/', accessTokenVarify, adderssValidation, createAddress);
 
 /**
  * @swagger
@@ -82,7 +82,7 @@ router.post('/', accessTokenVarify,adderssValidation, createAddress);
  *         description: find address successfully
  *
  */
-router.get('/show',accessTokenVarify, showAddress);
+router.get('/show', accessTokenVarify, showAddress);
 
 /**
  * @swagger
@@ -109,7 +109,7 @@ router.get('/show',accessTokenVarify, showAddress);
  *
  *
  */
-router.put('/',accessTokenVarify,updateAddress);
+router.put('/', accessTokenVarify, updateAddress);
 
 /**
  * @swagger
@@ -137,7 +137,7 @@ router.put('/',accessTokenVarify,updateAddress);
  *
  *
  */
-router.delete('/', accessTokenVarify,deleteAddress);
+router.delete('/', accessTokenVarify, deleteAddress);
 
 router.get('/axios', axiosTest);
 

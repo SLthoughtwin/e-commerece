@@ -1,12 +1,15 @@
 const router = require('express').Router();
 const {
-  productValidation,
   uploadfile,
   uploadImage,
   accessTokenVarify,
   checkRole,
-  productUpdateValidation
+  checkIdFormat,
 } = require('../middleware/');
+const {
+  productUpdateValidation,
+  productValidation,
+} = require('../validations');
 const {
   createProduct,
   deleteProcduct,
@@ -14,9 +17,7 @@ const {
   showProduct,
   showProductById,
 } = require('./../controller/');
-const cloudinary = require('cloudinary').v2;
-const {seller,admin, userRole} = require('./../config/')
-
+const { seller, admin, userRole } = require('./../config/');
 
 /**
  * @swagger
@@ -42,7 +43,7 @@ const {seller,admin, userRole} = require('./../config/')
  *                      type : string
  *                  description :
  *                      type : string
- *                  avatar: 
+ *                  avatar:
  *                      type: string
  *                      format: binary
  *
@@ -85,7 +86,6 @@ router.post(
   createProduct,
 );
 
-
 /**
  * @swagger
  * /v1/product:
@@ -117,13 +117,18 @@ router.post(
  *
  */
 
-router.get('/', accessTokenVarify, checkRole(seller,admin,userRole,"public"), showProduct);
+router.get(
+  '/',
+  accessTokenVarify,
+  checkRole(seller, admin, userRole, 'public'),
+  showProduct,
+);
 
 /**
  * @swagger
  * /v1/product/{id}:
  *   get:
- *     summary: get product by id 
+ *     summary: get product by id
  *     tags: [product]
  *     parameters:
  *       - in: path
@@ -146,13 +151,19 @@ router.get('/', accessTokenVarify, checkRole(seller,admin,userRole,"public"), sh
  *         description: not verified
  */
 
-router.get('/:id', accessTokenVarify, checkRole(seller), showProductById);
+router.get(
+  '/:id',
+  accessTokenVarify,
+  checkRole(seller),
+  checkIdFormat,
+  showProductById,
+);
 
 /**
  * @swagger
  * /v1/product/{id}:
  *   put:
- *     summary: update product by id 
+ *     summary: update product by id
  *     tags: [product]
  *     parameters:
  *       - in: path
@@ -160,7 +171,7 @@ router.get('/:id', accessTokenVarify, checkRole(seller), showProductById);
  *         schema:
  *           type: string
  *         required: true
- *         description: this is product id 
+ *         description: this is product id
  *     responses:
  *       200:
  *         description: verified
@@ -174,6 +185,7 @@ router.put(
   accessTokenVarify,
   productUpdateValidation,
   checkRole(seller),
+  checkIdFormat,
   uploadfile,
   updateProduct,
 );
@@ -182,7 +194,7 @@ router.put(
  * @swagger
  * /v1/product/{id}:
  *   delete:
- *     summary: delete product by id 
+ *     summary: delete product by id
  *     tags: [product]
  *     parameters:
  *       - in: path
@@ -190,7 +202,7 @@ router.put(
  *         schema:
  *           type: string
  *         required: true
- *         description: this is product id 
+ *         description: this is product id
  *     responses:
  *       200:
  *         description: verified
@@ -198,7 +210,12 @@ router.put(
  *         description: not verified
  */
 
-router.delete('/:id', accessTokenVarify, checkRole(seller), deleteProcduct);
-
+router.delete(
+  '/:id',
+  accessTokenVarify,
+  checkRole(seller),
+  checkIdFormat,
+  deleteProcduct,
+);
 
 module.exports = router;

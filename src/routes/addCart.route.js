@@ -9,12 +9,15 @@ const {
 const router = express();
 
 const {
-  addCartValidation,
   accessTokenVarify,
   checkRole,
-  incrementCartValidation,
   checkIdFormat,
 } = require('../middleware');
+
+const {
+  addCartValidation,
+  incrementCartValidation,
+} = require('../validations');
 
 /**
  * @swagger
@@ -88,7 +91,13 @@ router.get('/', accessTokenVarify, checkRole('user'), showCart);
  *         description: delete cart by id  successfully
  *
  */
-router.delete('/:id', accessTokenVarify, checkRole('user'), checkIdFormat,deleteCartItems);
+router.delete(
+  '/:id',
+  accessTokenVarify,
+  checkRole('user'),
+  checkIdFormat,
+  deleteCartItems,
+);
 
 /**
  * @swagger

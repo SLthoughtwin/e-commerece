@@ -12,15 +12,15 @@ exports.errorHandler = (error, req, res, next) => {
   }
 };
 
-exports.responseHandler = (status,msg, res,data) => {
- if(data){
+exports.responseHandler = (status, msg, res, data) => {
+  if (data) {
     return res.status(status).json({
-      data: { statusCode:status, message: msg,data},
+      data: { statusCode: status, message: msg, data },
     });
-   }
-    return res.status(status).json({
-      data: { statusCode:status, message: msg},
-    });
+  }
+  return res.status(status).json({
+    data: { statusCode: status, message: msg },
+  });
 };
 
 exports.checkvar = (key) => {
@@ -29,8 +29,6 @@ exports.checkvar = (key) => {
   }
   return process.env[key];
 };
-
-
 
 // app.use((req, res, next) => {
 //   const error = new Error('something went wrong!!');

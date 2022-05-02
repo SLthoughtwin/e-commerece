@@ -1,6 +1,8 @@
 const { User } = require('./../models/');
 const { userRole } = require('./../config/');
 const cron = require('node-cron');
+const ApiError = require('../config/apierror');
+const { responseHandler } = require('../config/');
 const {
   mailfunction,
   bcryptPasswordMatch,
@@ -22,7 +24,7 @@ cron.schedule('0 1 * * *', async function () {
   });
 });
 
-exports.signUPUser = async (req, res) => {
+exports.signUPUser = async (req, res, next) => {
   try {
     const verifyMail = verifyEmail(req);
     if (verifyMail === true) {
@@ -37,40 +39,29 @@ exports.signUPUser = async (req, res) => {
         const link = `http://localhost:5000/seller/${result.resetToken}`;
         await mailfunction(email, link)
           .then((response) => {
-            res.status(201).json({
-              statusCode: 200,
-              message: 'check your mail to verified :)',
-            });
             console.log('check your mail to verified');
+            return responseHandler(200, 'check your mail to verified', res);
           })
           .catch((err) => {
-            res.status(400).json({
-              statusCode: 400,
-              message: 'mail not send :)',
-            });
+            return next(new ApiError(400, 'mail not send'));
           });
       } else {
-        res.status(400).json({
-          statusCode: 400,
-          message: 'email/phone already exist',
-        });
+        return next(new ApiError(400, 'email/phone already exist'));
       }
     } else {
-      res.status(400).json({
-        statusCode: 400,
-        message:
+      return next(
+        new ApiError(
+          400,
           'invalid gmail formate please try this formate @gmail.com/yopmail.com',
-      });
+        ),
+      );
     }
   } catch (error) {
-    res.status(400).json({
-      statusCode: 400,
-      message: 'email/phone already exist',
-    });
+    return next(new ApiError(400, 'email/phone already exist'));
   }
 };
 
-exports.userLogin = async (req, res) => {
+exports.userLogin = async (req, res, next) => {
   try {
     const returnUser = async (req) => {
       if (req.body.phone) {
@@ -86,10 +77,7 @@ exports.userLogin = async (req, res) => {
       if (req.body.email) {
         const result = await User.findOne({ email: req.body.email });
         if (!result) {
-          res.status(400).json({
-            statusCode: 400,
-            message: 'invalid email',
-          });
+          return next(new ApiError(400, 'invalid email'));
         } else if (result.role === 'user') {
           if (result.isVerified === true) {
             const db_pass = result.password;
@@ -99,30 +87,20 @@ exports.userLogin = async (req, res) => {
               const userId = result.id;
               const accesstoken = await accessToken(userId);
               const refreshtoken = await refreshToken(userId);
-              return res.status(200).json({
-                statusCode: 200,
-                message: 'login successfully',
-                name: result.fullName,
-                accToken: accesstoken,
-                refreshtoken: refreshtoken,
-              });
+              return responseHandler(
+                200,
+                'login successfully',
+                res,
+                accesstoken,
+              );
             } else {
-              res.status(400).json({
-                statusCode: 400,
-                message: 'invalid login details',
-              });
+              return next(new ApiError(400, 'invalid login details'));
             }
           } else {
-            res.status(400).json({
-              statusCode: 400,
-              message: 'first verified your gmail',
-            });
+            return next(new ApiError(400, 'first verified your gmail'));
           }
         } else {
-          res.status(400).json({
-            statusCode: 400,
-            message: 'Role must be user',
-          });
+          return next(new ApiError(400, 'Role must be user'));
         }
       } else if (req.body.phone) {
         const result = await User.findOne({ phone: req.body.phone });
@@ -132,16 +110,10 @@ exports.userLogin = async (req, res) => {
             { phone: req.body.phone },
             { otp: Otp, resetTime: Date.now() + 10 * 60000 },
           );
-          res.status(200).json({
-            statusCode: 200,
-            message: 'otp send to your number',
-          });
+          return responseHandler(200, 'otp send to your number', res);
         } else {
           if (!result) {
-            res.status(400).json({
-              statusCode: 200,
-              message: 'invalid number ',
-            });
+            return next(new ApiError(400, 'invalid number'));
           } else if (result.role === 'user') {
             if (result.isVerified === true) {
               if (result.otp == 'true') {
@@ -152,54 +124,37 @@ exports.userLogin = async (req, res) => {
                   const userId = result.id;
                   const accesstoken = await accessToken(userId);
                   const refreshtoken = await refreshToken(userId);
-                  return res.status(200).json({
-                    statusCode: 200,
-                    message: 'login successfully',
-                    name: result.fullName,
-                    accessToken: accesstoken,
-                    refreshtoken: refreshtoken,
-                  });
+                  return responseHandler(
+                    200,
+                    'login successfully',
+                    res,
+                    accesstoken,
+                  );
                 } else {
-                  res.status(400).json({
-                    statusCode: 400,
-                    message: 'invalid login details',
-                  });
+                  return next(new ApiError(400, 'invalid login details'));
                 }
               } else {
-                res.status(400).json({
-                  statusCode: 400,
-                  message: 'first verify otp then login.....?',
-                });
+                return next(new ApiError(400, 'first verify otp then login?'));
               }
             } else {
-              res.status(400).json({
-                statusCode: 400,
-                message: 'your email is not verified',
-              });
+              return next(new ApiError(400, 'your email is not verified'));
             }
           } else {
-            res.status(400).json({
-              statusCode: 400,
-              message: 'Role must be user',
-            });
+            return next(new ApiError(400, 'Role must be user'));
           }
         }
       }
     } else {
-      res.status(400).json({
-        statusCode: 400,
-        message: 'user not found',
-      });
+      return next(new ApiError(400, 'user not found'));
     }
   } catch (error) {
-    res.status(400).json({
-      statusCode: 400,
-      message: 'this phone number are not registerd in twilio sms',
-    });
+    return next(
+      new ApiError(400, 'this phone number are not registerd in twilio sms'),
+    );
   }
 };
 
-exports.userVarified = async (req, res) => {
+exports.userVarified = async (req, res, next) => {
   try {
     const result = await User.findOne({ resetToken: req.params.token });
     if (result.isVerified == true) {
@@ -208,43 +163,27 @@ exports.userVarified = async (req, res) => {
           { resetToken: req.params.token },
           { isVerified: true, resetToken: '' },
         );
-
-        sendMsgBymail(result.email);
-        return res.status(200).json({
-          statusCode: 200,
-          message: 'verified by mail',
-        });
+        await sendMsgBymail(result.email);
+        return responseHandler(200, 'verified by mail', res);
       } else {
-        return res.status(400).json({
-          statusCode: 400,
-          message: 'your verification time has expired ',
-        });
+        return next(new ApiError(400, 'your verification time has expired'));
       }
     } else {
-      return res.status(200).json({
-        statusCode: 200,
-        message: 'already  verified',
-      });
+      return responseHandler(200, 'already  verified', res);
     }
   } catch (error) {
-    res.status(400).json({
-      statusCode: 200,
-      message: 'invalid user',
-    });
+    return next(new ApiError(400, 'invalid user'));
   }
 };
 
-exports.userVerifiedOtp = async (req, res) => {
+exports.userVerifiedOtp = async (req, res, next) => {
   try {
     const otp = req.body.otp;
     const contact = req.body.phone;
 
     const result = await User.findOne({ phone: contact });
     if (!result) {
-      return res.status(200).json({
-        statusCode: 200,
-        message: 'invalid otp/number',
-      });
+      return next(new ApiError(400, 'invalid otp/number'));
     } else {
       if (result.resetTime <= Date.now()) {
         if (result.otp === otp) {
@@ -253,33 +192,20 @@ exports.userVerifiedOtp = async (req, res) => {
             { otp: true, resetToken: '' },
           );
           // await sendMsg(req);
-
-          res.status(200).json({
-            statusCode: 200,
-            message: 'varified otp',
-          });
+          return responseHandler(200, 'varified otp', res);
         } else {
-          res.status(400).json({
-            statusCode: 400,
-            message: 'invalid user/otp ',
-          });
+          return next(new ApiError(400, 'invalid user/otp'));
         }
       } else {
-        res.status(400).json({
-          statusCode: 400,
-          message: 'otp time has been expired',
-        });
+        return next(new ApiError(400, 'otp time has been expired'));
       }
     }
   } catch (error) {
-    res.status(400).json({
-      statusCode: 400,
-      message: 'invalid otp',
-    });
+    return next(new ApiError(400, 'invalid otp'));
   }
 };
 
-exports.logoutUser = async (req, res) => {
+exports.logoutUser = async (req, res, next) => {
   try {
     const _id = req.body.id;
     const data = await User.findOne({ _id });
@@ -290,20 +216,14 @@ exports.logoutUser = async (req, res) => {
       });
     } else {
       const result = await User.findByIdAndUpdate({ _id }, { otp: null });
-      res.status(200).json({
-        statusCode: 400,
-        message: 'logout successfully',
-      });
+      return responseHandler(200, 'logout successfully', res);
     }
   } catch (error) {
-    res.status(400).json({
-      statusCode: 400,
-      message: 'id lenght must be 24',
-    });
+    return next(new ApiError(400, 'id lenght must be 24'));
   }
 };
 
-exports.createAccessRefreshTokenToUser = async (req, res) => {
+exports.createAccessRefreshTokenToUser = async (req, res, next) => {
   const refreshVarify = req.body.token;
   const paylod = refreshTokenVarify(refreshVarify);
   console.log('$$$$$$$$#####', paylod);

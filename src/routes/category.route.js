@@ -8,9 +8,13 @@ const {
   showCategoryById,
   deleteCategory,
 } = require('../controller');
-const { accessTokenVarify, checkRole ,categoryValidation,uploadImage1} = require('../middleware');
-
-
+const {
+  accessTokenVarify,
+  checkRole,
+  uploadImage1,
+  checkIdFormat,
+} = require('../middleware');
+const{categoryValidation} = require('../validations')
 /**
  * @swagger
  * components:
@@ -34,20 +38,18 @@ const { accessTokenVarify, checkRole ,categoryValidation,uploadImage1} = require
  *                  description : This item is made of transparent glass
  */
 
-
-
 /**
  * @swagger
  * /v1/category:
  *   post:
- *     summary: create category 
+ *     summary: create category
  *     tags: [category]
  *     requestBody:
  *         required: true
  *         content:
  *          multipart/form-data:
  *            schema:
- *             $ref: '#components/schemas/category'          
+ *             $ref: '#components/schemas/category'
  *     responses:
  *       200:
  *         description: verified seller successfully
@@ -56,7 +58,14 @@ const { accessTokenVarify, checkRole ,categoryValidation,uploadImage1} = require
  *
  */
 
-router.post('/',uploadImage1,accessTokenVarify,checkRole('admin'),categoryValidation,createCategory);
+router.post(
+  '/',
+  uploadImage1,
+  accessTokenVarify,
+  checkRole('admin'),
+  categoryValidation,
+  createCategory,
+);
 
 /**
  * @swagger
@@ -81,13 +90,21 @@ router.post('/',uploadImage1,accessTokenVarify,checkRole('admin'),categoryValida
  *
  *
  */
-router.put('/:id',uploadImage1,accessTokenVarify, checkRole('admin'), categoryValidation,updateCategory);
+router.put(
+  '/:id',
+  uploadImage1,
+  accessTokenVarify,
+  checkRole('admin'),
+  checkIdFormat,
+  categoryValidation,
+  updateCategory,
+);
 
 /**
  * @swagger
  * /v1/category:
  *   get:
- *     summary: show category 
+ *     summary: show category
  *     tags: [category]
  *     parameters:
  *      - in: query
@@ -121,7 +138,13 @@ router.get('/', accessTokenVarify, checkRole('admin'), showCategory);
  *
  *
  */
-router.get('/:id', accessTokenVarify, checkRole('admin'), showCategoryById);
+router.get(
+  '/:id',
+  accessTokenVarify,
+  checkRole('admin'),
+  checkIdFormat,
+  showCategoryById,
+);
 
 /**
  * @swagger
@@ -141,6 +164,12 @@ router.get('/:id', accessTokenVarify, checkRole('admin'), showCategoryById);
  *
  *
  */
-router.delete('/:id', accessTokenVarify, checkRole('admin'), deleteCategory);
+router.delete(
+  '/:id',
+  accessTokenVarify,
+  checkRole('admin'),
+  checkIdFormat,
+  deleteCategory,
+);
 
 module.exports = router;

@@ -1,5 +1,4 @@
 const express = require('express');
-const { route } = require('express/lib/application');
 const router = express();
 const {
   userVarified,
@@ -13,7 +12,7 @@ const {
 const {
   signUpSellerValidation,
   loginsellerValidation,
-} = require('../middleware/');
+} = require('../validations');
 
 /**
  * @swagger

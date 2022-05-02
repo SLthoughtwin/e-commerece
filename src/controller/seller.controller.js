@@ -1,9 +1,8 @@
 const { User, SellerProfile } = require('./../models/');
 const { seller } = require('./../config/');
 const { refreshTokenVarify } = require('./../services/');
-const objectID = require('mongodb').ObjectId;
-const cloudinary = require('cloudinary').v2;
-const { cloud_name, cloud_key, cloud_secret } = require('../config/');
+const ApiError = require('../config/apierror');
+const { responseHandler } = require('../config/');
 const {
   mailfunction,
   bcryptPasswordMatch,
@@ -13,14 +12,10 @@ const {
   sendMsg,
   sendMsgBymail,
   verifyEmail,
-  createToken,
 } = require('../services/');
 const { html } = require('../template/template');
-const { updateUser } = require('.');
-const { result } = require('lodash');
-// const { SellerProfile, User } = require('../models/');
 
-exports.signUPSeller = async (req, res) => {
+exports.signUPSeller = async (req, res, next) => {
   try {
     const verifyMail = verifyEmail(req);
     if (verifyMail === true) {
@@ -32,47 +27,32 @@ exports.signUPSeller = async (req, res) => {
         req.body.role = seller;
         const email = req.body.email;
         const result = await User.create(req.body);
-        const link = `http://localhost:8080/auth/seller/${result.resetToken}`;
-        // const link = await createToken(result.email);
+        const link = `http://localhost:5000/auth/seller/${result.resetToken}`;
         await mailfunction(email, html(link))
           .then((response) => {
-            res.status(201).json({
-              statusCode: 200,
-              message: 'check your mail to verified :)',
-            });
             console.log('check your mail to verified');
+            return responseHandler(200, 'check your mail to verified', res);
           })
           .catch((err) => {
-            console.log(err);
-            res.status(400).json({
-              statusCode: 400,
-              message: 'mail not send :)',
-            });
+            return next(new ApiError(400, 'mail not send'));
           });
       } else {
-        res.status(400).json({
-          statusCode: 400,
-          message: 'email/phone already exist',
-        });
+        return next(new ApiError(400, 'email/phone already exist'));
       }
     } else {
-      res.status(400).json({
-        statusCode: 400,
-        message:
+      return next(
+        new ApiError(
+          400,
           'invalid gmail formate please try this formate souarbh@gmail.com/yopmail.com',
-      });
+        ),
+      );
     }
   } catch (error) {
-    res.status(400).json({
-      statusCode: 400,
-      message: 'email/phone already exist......',
-    });
+    return next(new ApiError(400, 'email/phone already exist'));
   }
 };
-// const link = `http://localhost:8080/seller/${result.resetToken}`;
-// module.exports = {link};
 
-exports.sellerLogin = async (req, res) => {
+exports.sellerLogin = async (req, res, next) => {
   try {
     const returnUser = async (req) => {
       if (req.body.phone) {
@@ -102,35 +82,23 @@ exports.sellerLogin = async (req, res) => {
                 const userId = result.id;
                 const accesstoken = await accessToken(userId);
                 const refreshtoken = await refreshToken(userId);
-                return res.status(200).json({
-                  statusCode: 200,
-                  message: 'login successfully',
-                  accToken: accesstoken,
-                  refreshtoken: refreshtoken,
-                });
+                return responseHandler(
+                  200,
+                  'login successfully',
+                  res,
+                  accesstoken,
+                );
               } else {
-                res.status(400).json({
-                  statusCode: 400,
-                  message: 'invalid login details',
-                });
+                return next(new ApiError(400, 'invalid login details'));
               }
             } else {
-              res.status(400).json({
-                statusCode: 400,
-                message: 'you are not approved by admin',
-              });
+              return next(new ApiError(400, 'you are not approved by admin'));
             }
           } else {
-            res.status(400).json({
-              statusCode: 400,
-              message: 'you are not verified by ',
-            });
+            return next(new ApiError(400, 'you are not verified by mail'));
           }
         } else {
-          res.status(400).json({
-            statusCode: 400,
-            message: 'role must be seller',
-          });
+          return next(new ApiError(400, 'role must be seller'));
         }
       } else if (req.body.phone) {
         const result = await User.findOne({ phone: req.body.phone });
@@ -144,12 +112,10 @@ exports.sellerLogin = async (req, res) => {
             statusCode: 200,
             message: 'otp send to your number',
           });
+          return responseHandler(200, 'otp send to your number', res);
         } else {
           if (!result) {
-            res.status(400).json({
-              statusCode: 400,
-              message: 'invalid number ',
-            });
+            return next(new ApiError(400, 'invalid number'));
           } else if (result.role === 'seller') {
             if (result.isVerified === true) {
               if (result.isApproved === true) {
@@ -161,59 +127,42 @@ exports.sellerLogin = async (req, res) => {
                     const userId = result.id;
                     const accesstoken = await accessToken(userId);
                     const refreshtoken = await refreshToken(userId);
-                    return res.status(200).json({
-                      statusCode: 200,
-                      message: 'login successfully',
-                      accessToken: accesstoken,
-                      refreshtoken: refreshtoken,
-                    });
+                    return responseHandler(
+                      200,
+                      'login successfully',
+                      res,
+                      accesstoken,
+                    );
                   } else {
-                    res.status(400).json({
-                      statusCode: 400,
-                      message: 'invalid login details',
-                    });
+                    return next(new ApiError(400, 'invalid login details'));
                   }
                 } else {
-                  res.status(400).json({
-                    statusCode: 400,
-                    message: 'first verify otp then login.....?',
-                  });
+                  return next(
+                    new ApiError(400, 'first verify otp then login?'),
+                  );
                 }
               } else {
-                res.status(400).json({
-                  statusCode: 400,
-                  message: 'you are not approved by admin ',
-                });
+                return next(new ApiError(400, 'you are not approved by admin'));
               }
             } else {
-              res.status(400).json({
-                statusCode: 400,
-                message: 'your email is not verified ',
-              });
+              return next(new ApiError(400, 'your email is not verified'));
             }
           } else {
-            res.status(400).json({
-              statusCode: 400,
-              message: 'role must be seller',
-            });
+            return next(new ApiError(400, 'role must be seller'));
           }
         }
       }
     } else {
-      res.status(400).json({
-        statusCode: 400,
-        message: 'user not found',
-      });
+      return next(new ApiError(400, 'user not found'));
     }
   } catch (error) {
-    res.status(400).json({
-      statusCode: 400,
-      message: 'this phone number are not registerd in twilio sms',
-    });
+    return next(
+      new ApiError(400, 'this phone number are not registerd in twilio sms'),
+    );
   }
 };
 
-exports.sellerVarified = async (req, res) => {
+exports.sellerVarified = async (req, res, next) => {
   const result = await User.findOne({ resetToken: req.params.token });
   if (result.isVerified === false) {
     if (result.resetTime >= Date.now()) {
@@ -221,97 +170,57 @@ exports.sellerVarified = async (req, res) => {
         { resetToken: req.params.token },
         { isVerified: true },
       );
-
-      sendMsgBymail(result.email);
-      return res.status(200).json({
-        statusCode: 200,
-        message: 'verified by mail',
-      });
+      await sendMsgBymail(result.email);
+      return responseHandler(200, 'verified by mail', res);
     } else {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'your verification time has expired ',
-      });
+      return next(new ApiError(400, 'your verification time has expired'));
     }
   } else {
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'allready verified',
-    });
+    return responseHandler(200, 'allready verified', res);
   }
 };
 
-exports.verifiedOtp = async (req, res) => {
+exports.verifiedOtp = async (req, res, next) => {
   const otp = req.body.otp;
   const contact = req.body.phone;
 
   const result = await User.findOne({ phone: contact });
   if (!result) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: 'invalid otp/number ',
-    });
+    return next(new ApiError(400, 'invalid otp/number'));
   } else {
-    // if(result.resetTime <= Date.now()){
-
     if (result.otp === otp) {
       const sellerresult = await User.updateOne(
         { phone: req.body.phone },
         { otp: true, resetToken: '' },
       );
-      // await sendMsg(req);
-
-      res.status(200).json({
-        statusCode: 200,
-        message: 'varified otp',
-      });
+      // await sendMsg(req)
+      return responseHandler(200, 'varified otp', res);
     } else {
-      res.status(400).json({
-        statusCode: 400,
-        message: 'invalid user/otp ',
-      });
+      return next(new ApiError(400, 'invalid user/otp'));
     }
-    // }else{
-    //   res.status(400).json({
-    //     message: "otp time has expired",
-    //
-    //   })
-    // }
   }
 };
 
-exports.logoutSelller = async (req, res) => {
+exports.logoutSelller = async (req, res, next) => {
   try {
     const _id = req.body.id;
     const data = await User.findOne({ _id });
     if (!data) {
-      res.status(400).json({
-        statusCode: 400,
-        message: 'invalid id',
-      });
+      return next(new ApiError(400, 'invalid id'));
     } else {
       const result = await User.findByIdAndUpdate({ _id }, { otp: null });
-      res.status(200).json({
-        statusCode: 200,
-        message: 'logout successfully',
-      });
+      return responseHandler(200, 'logout successfully', res);
     }
   } catch (error) {
-    res.status(400).json({
-      statusCode: 400,
-      message: 'id lenght must be 24/invalid id',
-    });
+    return next(new ApiError(400, 'id lenght must be 24/invalid id'));
   }
 };
 
-exports.createProfile = async (req, res) => {
+exports.createProfile = async (req, res, next) => {
   try {
     const result = await User.findOne({ _id: req.body.sellerId });
     if (!result) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'please insert valid sellerId',
-      });
+      return next(new ApiError(400, 'please insert valid sellerId'));
     }
     const findProfile = await SellerProfile.findOne({
       sellerId: req.body.sellerId,
@@ -320,21 +229,21 @@ exports.createProfile = async (req, res) => {
       updateProfile(req, res);
     } else {
       const createProfile = await SellerProfile.create(req.body);
-      return res.status(200).json({
-        statusCode: 200,
-        message: 'create profile successfully',
-        data: createProfile,
-      });
+      return responseHandler(
+        201,
+        'create profile successfully',
+        res,
+        createProfile,
+      );
     }
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: 'Id lenght must be 24 character/invalid id format',
-    });
+    return next(
+      new ApiError(400, 'Id lenght must be 24 character/invalid id format'),
+    );
   }
 };
 
-updateProfile = async (req, res) => {
+updateProfile = async (req, res, next) => {
   try {
     const id = req.body.sellerId;
     const fullName = req.body.fullName;
@@ -354,16 +263,11 @@ updateProfile = async (req, res) => {
         message: 'inavlid id',
       });
     }
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'profile update successfully',
-      data: result,
-    });
+    return responseHandler(200, 'profile update successfully', res, result);
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: 'Id lenght must be 24 character/invalid id format',
-    });
+    return next(
+      new ApiError(400, 'Id lenght must be 24 character/invalid id format'),
+    );
   }
 };
 
@@ -373,7 +277,7 @@ updateUserProfileTable = async (id, fullName) => {
   });
 };
 
-exports.createAccessRefreshToken = async (req, res) => {
+exports.createAccessRefreshToken = async (req, res, next) => {
   const refreshVarify = req.body.token;
   const paylod = refreshTokenVarify(refreshVarify);
   console.log('$$$$$$$$#####', paylod);

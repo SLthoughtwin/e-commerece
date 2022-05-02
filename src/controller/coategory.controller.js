@@ -1,18 +1,15 @@
-const { User, Category, Brand } = require('./../models/');
+const { Category } = require('./../models/');
 const { deleteImageFromCloud, uploadfileInCloud } = require('../middleware/');
+const ApiError = require('../config/apierror');
+const { responseHandler } = require('../config/');
 
-const objectID = require('mongodb').ObjectId;
-
-exports.createCategory = async (req, res) => {
+exports.createCategory = async (req, res, next) => {
   try {
     const result = await Category.findOne({
       category_name: req.body.category_name,
     });
     if (result) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'this Category already exist',
-      });
+      return responseHandler(200, 'this Category already exist', res);
     }
     if (req.files.length === 1) {
       const image = await uploadfileInCloud(req);
@@ -20,33 +17,21 @@ exports.createCategory = async (req, res) => {
       req.body.imageId = image.public_id;
     }
     const createCategory = await Category.create(req.body);
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'create Category successfully',
-      data: createCategory,
-    });
+    return responseHandler(
+      200,
+      'create Category successfully',
+      res,
+      createCategory,
+    );
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400, error.message));
   }
 };
-exports.updateCategory = async (req, res) => {
+exports.updateCategory = async (req, res, next) => {
   try {
-    if (objectID.isValid(req.params.id) === false) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'Category id must be correct format',
-      });
-    }
-
     const result = await Category.findOne({ _id: req.params.id });
     if (!result) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'inavalid Category id',
-      });
+      return responseHandler(200, 'inavalid Category id', res);
     }
 
     if (req.files) {
@@ -61,48 +46,28 @@ exports.updateCategory = async (req, res) => {
       req.body,
       { new: true },
     );
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'update brand successfully',
-      data: updateCategory,
-    });
+    return responseHandler(
+      200,
+      'update brand successfully',
+      res,
+      updateCategory,
+    );
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400, error.message));
   }
 };
-exports.showCategoryById = async (req, res) => {
+exports.showCategoryById = async (req, res, next) => {
   try {
-    if (objectID.isValid(req.params.id) === false) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'brand id must be correct format',
-      });
-    }
-
     const result = await Category.findOne({ _id: req.params.id });
     if (!result) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'inavalid Category id',
-      });
+      return next(new ApiError(404, 'inavalid Category id'));
     }
-
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'find brand successfully',
-      data: result,
-    });
+    return responseHandler(200, 'find brand successfully', res, result);
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400, error.message));
   }
 };
-exports.showCategory = async (req, res) => {
+exports.showCategory = async (req, res, next) => {
   try {
     const { page = 1, limit = 5 } = req.query;
     const regex = new RegExp(req.query.search, 'i');
@@ -111,50 +76,22 @@ exports.showCategory = async (req, res) => {
       .skip((page - 1) * limit)
       .sort({ createdAt: -1 });
     if (!result) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'there is no Category',
-      });
+      return next(new ApiError(404, 'athere is no Category'));
     }
-
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'find Category successfully',
-      data: result,
-    });
+    return responseHandler(200, 'find Category successfully', res, result);
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400, error.message));
   }
 };
-exports.deleteCategory = async (req, res) => {
+exports.deleteCategory = async (req, res, next) => {
   try {
-    if (objectID.isValid(req.params.id) === false) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'Category id must be correct format',
-      });
-    }
-
     const result = await Category.findOneAndDelete({ _id: req.params.id });
     if (!result) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'there is no Category releted this id',
-      });
+      return next(new ApiError(404, 'there is no Category releted this id'));
     }
     await deleteImageFromCloud(result.imageId);
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'delete Category successfully',
-      data: result,
-    });
+    return responseHandler(200, 'delete Category successfully', res, result);
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400, error.message));
   }
 };

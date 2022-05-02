@@ -1,52 +1,27 @@
 const { User, Product, CloudId, Brand, Category } = require('./../models/');
 const objectID = require('mongodb').ObjectId;
-const {
- 
-  deleteImageFromCloud,
-  checkFilter,
-  
-} = require('../middleware');
-const { userRole, seller, admin } = require('../config/');
+const { deleteImageFromCloud, checkFilter } = require('../middleware');
+const { userRole, seller } = require('../config/');
 const { productFields } = require('../services/');
-// const { createProduct } = require('.');
+const ApiError = require('../config/apierror');
+const { responseHandler } = require('../config/');
 
-exports.createProduct = async (req, res) => {
+exports.createProduct = async (req, res, next) => {
   try {
     if (objectID.isValid(req.body.categoryId) === false) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'Category id must be correct format',
-      });
+      return next(new ApiError(400, 'id must be correct format'));
     }
-
     if (objectID.isValid(req.body.brandId) === false) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'Brand id must be correct format',
-      });
+      return next(new ApiError(400, 'brand id must be correct format'));
     }
-
     const category = await Category.findOne({ _id: req.body.categoryId });
     if (!category) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'this category is not available',
-      });
+      return next(new ApiError(404, 'this category is not available'));
     }
     const brand = await Brand.findOne({ _id: req.body.brandId });
     if (!brand) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'this brand is not available',
-      });
+      return next(new ApiError(404, 'this brand is not available'));
     }
-    // const result = await User.findOne({ _id: req.userid });
-    // if (!result) {
-    //   return res.status(400).json({
-    //     statusCode: 400,
-    //     message: 'please insert valid sellerId',
-    //   });
-    // }
     req.body.createBy = req.userid;
     const cloud_public_id = req.cloudId;
     const image_url = req.imageurl;
@@ -56,40 +31,26 @@ exports.createProduct = async (req, res) => {
     const result_cloud = await CloudId.create(data);
     createproduct.image = result_cloud.id;
     await createproduct.save();
-    // console.log(createproduct.id);
     const newCreateProduct = await Product.findOne({ _id: createproduct.id })
       .populate('createBy', 'fullName')
       .populate('categoryId', 'category_name')
       .populate('brandId', 'brand_name')
       .populate('image', 'image.image_url');
-    return res.status(200).json({
-      data: newCreateProduct,
-      message: 'create product successfully',
-      succes: true,
-    });
+    return responseHandler(
+      201,
+      'create product successfully',
+      res,
+      newCreateProduct,
+    );
   } catch (error) {
-    console.log(error);
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400, error.message));
   }
 };
 
-exports.updateProduct = async (req, res) => {
+exports.updateProduct = async (req, res, next) => {
   try {
-    if (objectID.isValid(req.params.id) === false) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'Product id must be correct format',
-      });
-    }
-
-    if (!req.body.lenght && !req.files) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'please add some fileds',
-      });
+    if (!req.body.length && !req.files) {
+      return next(new ApiError(400, 'please add some fileds'));
     }
     req.body.image = req.imageurl;
     const result = await Product.findOneAndUpdate(
@@ -100,10 +61,7 @@ exports.updateProduct = async (req, res) => {
       },
     );
     if (!result) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'inavlid id',
-      });
+      return next(new ApiError(404, 'invalid id'));
     }
     const findProductId = await CloudId.findOne({ product_id: result.id });
     if (req.files) {
@@ -122,29 +80,19 @@ exports.updateProduct = async (req, res) => {
       .populate('categoryId', 'category_name')
       .populate('brandId', 'brand_name')
       .populate('image', 'image.image_url');
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'product update successfully',
-      data: newResult,
-    });
+    return responseHandler(200, 'product update successfully', res, newResult);
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400, error.message));
   }
 };
 
-exports.showProduct = async (req, res) => {
+exports.showProduct = async (req, res, next) => {
   try {
     if (req.user.role === seller) {
       const { page = 1, limit = 5 } = req.query;
       const filter = checkFilter(req, res);
       if (filter === false) {
-        return res.status(404).json({
-          statusCode: 400,
-          message: 'enter valid fields',
-        });
+        return next(new ApiError(400, 'enter valid fields'));
       } else {
         const allfields = productFields(req);
         const regex = new RegExp(req.query.search, 'i');
@@ -159,21 +107,14 @@ exports.showProduct = async (req, res) => {
           .populate('brandId', 'brand_name')
           .populate('createBy', 'fullName')
           .populate('image', 'image.image_url');
-        return res.status(200).json({
-          statusCode: 200,
-          message: 'product found successfully',
-          data: result,
-        });
+        return responseHandler(200, 'product found successfully', res, result);
       }
     }
-    if (req.user.role === userRole || req.user.role === "public" ) {
+    if (req.user.role === userRole || req.user.role === 'public') {
       const { page = 1, limit = 5 } = req.query;
       const filter = checkFilter(req, res);
       if (filter === false) {
-        return res.status(404).json({
-          statusCode: 400,
-          message: 'enter valid fields',
-        });
+        return next(new ApiError(400, 'enter valid fields'));
       } else {
         const allfields = productFields(req);
         const regex = new RegExp(req.query.search, 'i');
@@ -188,24 +129,14 @@ exports.showProduct = async (req, res) => {
           .populate('brandId', 'brand_name')
           .populate('createBy', 'fullName')
           .populate('image', 'image.image_url');
-        // console.log(result)
-        
-        return res.status(200).json({
-          statusCode: 200,
-          message: 'product found successfully',
-          data: result,
-        });
+        return responseHandler(200, 'product found successfully', res, result);
       }
     }
-
     const { page = 1, limit = 5 } = req.query;
     const filter = checkFilter(req, res);
     delete filter.createBy;
     if (filter === false) {
-      return res.status(404).json({
-        statusCode: 400,
-        message: 'enter valid fields',
-      });
+      return next(new ApiError(400, 'enter valid fields'));
     } else {
       const allfields = productFields(req);
       const regex = new RegExp(req.query.search, 'i');
@@ -223,35 +154,18 @@ exports.showProduct = async (req, res) => {
         .populate('brandId', 'brand_name')
         .populate('createBy', 'fullName')
         .populate('image', 'image.image_url');
-      return res.status(200).json({
-        statusCode:200,
-        message: 'product found successfully',
-        data: result,
-      });
+      return responseHandler(200, 'product found successfully', res, result);
     }
   } catch (error) {
-    console.log(error);
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400, error.message));
   }
 };
 
-exports.showProductById = async (req, res) => {
+exports.showProductById = async (req, res, next) => {
   try {
-    if (objectID.isValid(req.params.id) === false) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'Product id must be correct format',
-      });
-    }
     const user = await User.findOne({ _id: req.userid });
     if (!user) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'inavlid id',
-      });
+      return next(new ApiError(404, 'inavlid id'));
     }
     const { page = 1, limit = 5 } = req.query;
     const allfields = productFields(req);
@@ -267,39 +181,19 @@ exports.showProductById = async (req, res) => {
       .populate('createBy', 'fullName')
       .populate('image', 'image.image_url');
     if (!result) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'invalid product id',
-      });
+      return next(new ApiError(404, 'invalid product id'));
     }
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'product found successfully',
-      data: result,
-    });
+    return responseHandler(200, 'product found successfully', res, result);
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400, error.message));
   }
 };
 
-exports.deleteProcduct = async (req, res) => {
+exports.deleteProcduct = async (req, res, next) => {
   try {
-    if (objectID.isValid(req.params.id) === false) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'Product id must be correct format',
-      });
-    }
-
     const result = await Product.findByIdAndDelete({ _id: req.params.id });
     if (!result) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'inavlid id',
-      });
+      return next(new ApiError(404, 'inavlid id'));
     }
     const findProductId = await CloudId.findOne({ product_id: req.params.id });
     await findProductId.image.map((x) => {
@@ -308,15 +202,8 @@ exports.deleteProcduct = async (req, res) => {
     const cloudid = await CloudId.findOneAndDelete({
       product_id: req.params.id,
     });
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'product delete successfully',
-      data: result,
-    });
+    return responseHandler(200, 'product delete successfully', res, result);
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400, error.message));
   }
 };

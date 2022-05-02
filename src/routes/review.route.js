@@ -1,16 +1,23 @@
 const express = require('express');
 const router = express();
 
-const { createReview, deleteReview, getReview,editReview } = require('../controller');
+const {
+  createReview,
+  deleteReview,
+  getReview,
+  editReview,
+} = require('../controller');
 const {
   accessTokenVarify,
   checkRole,
   uploadImage,
-  uploadfile,
+  checkIdFormat,
+} = require('../middleware/');
+const {
   reviewValidation,
   reviewDeleteValidation,
-  editReviewValidation
-} = require('../middleware/');
+  editReviewValidation,
+} = require('../validations');
 
 /**
  * @swagger
@@ -67,6 +74,7 @@ router.post(
   uploadImage,
   accessTokenVarify,
   checkRole('user'),
+  checkIdFormat,
   reviewValidation,
   createReview,
 );
@@ -84,7 +92,14 @@ router.post(
  *
  *
  */
-router.delete('/:id', accessTokenVarify, checkRole('user'), reviewDeleteValidation,deleteReview);
+router.delete(
+  '/:id',
+  accessTokenVarify,
+  checkRole('user'),
+  checkIdFormat,
+  reviewDeleteValidation,
+  deleteReview,
+);
 
 /**
  * @swagger
@@ -102,14 +117,21 @@ router.delete('/:id', accessTokenVarify, checkRole('user'), reviewDeleteValidati
  *         description: delete order successfully
  *
  */
-router.get('/:id', accessTokenVarify, checkRole('user'), getReview);
+router.get(
+  '/:id',
+  accessTokenVarify,
+  checkRole('user'),
+  checkIdFormat,
+  getReview,
+);
 
 router.put(
-   '/:id',
-   uploadImage,
-   accessTokenVarify,
-   checkRole('user'),
-   editReviewValidation,
-   editReview,
- );
+  '/:id',
+  uploadImage,
+  accessTokenVarify,
+  checkRole('user'),
+  checkIdFormat,
+  editReviewValidation,
+  editReview,
+);
 module.exports = router;

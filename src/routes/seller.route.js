@@ -1,5 +1,4 @@
 const express = require('express');
-const { route } = require('express/lib/application');
 const router = express();
 const {
   sellerVarified,
@@ -9,15 +8,13 @@ const {
   signUPSeller,
   logoutSelller,
   createProfile,
-  createProduct
 } = require('../controller/');
+
 const {
   signUpSellerValidation,
   loginsellerValidation,
   profileValidation,
-  uploadfile,
-  uploadImage 
-} = require('../middleware/');
+} = require('../validations');
 
 /**
  * @swagger
@@ -178,8 +175,6 @@ router.post('/logout', logoutSelller);
  */
 router.get('/:token', sellerVarified);
 
-
-
 /**
  * @swagger
  * /v1/seller/peofile:
@@ -215,9 +210,9 @@ router.get('/:token', sellerVarified);
  *
  */
 
- router.post('/profile',profileValidation, createProfile);
+router.post('/profile', profileValidation, createProfile);
 
- /**
+/**
  * @swagger
  * /v1/seller/upload:
  *   post:
@@ -232,16 +227,13 @@ router.get('/:token', sellerVarified);
  *        name: avatar
  *        schema:
  *          type: file
-  *     responses:
+ *     responses:
  *       200:
  *         description: create profile successfully
  */
 
-
-
 //  router.post('/create',uploadfile,uploadImage,createProduct);
 
- 
 router.post('/createNewPairOfToken', createAccessRefreshToken);
 
 module.exports = router;

@@ -1,8 +1,7 @@
 require('dotenv').config();
 const { connection } = require('../config/dbconnection');
 const option = require('./swagger');
-const {errorHandler,responseHandler} = require('./errorhandler')
-const {sendPdf} = require('./pdf')
+const { errorHandler, responseHandler } = require('./errorhandler');
 const port = process.env.PORT;
 const mailEmail = process.env.EMAIL;
 const mailPassword = process.env.PASSWORD;
@@ -36,5 +35,4 @@ module.exports = {
   option,
   errorHandler,
   responseHandler,
-  sendPdf
 };

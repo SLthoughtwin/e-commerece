@@ -1,17 +1,16 @@
 const express = require('express');
 const router = express();
-const { adminValidation } = require('./../middleware/');
+const { adminValidation } = require('./../validations');
 const {
   adminLogin,
   approvedAndRejectSellerByAdmin,
   getAllseller,
   deleteSellerByAdmin,
   getAllUser,
-  productApprovedAndRejectByadmin
+  productApprovedAndRejectByadmin,
 } = require('./../controller/');
-const { accessTokenVarify} = require('./../middleware');
-const {checkRole} = require('./../middleware/seller.middleware');
-const {seller,admin} = require('./../config/')
+const { accessTokenVarify,checkRole } = require('./../middleware');
+const { admin } = require('./../config/');
 
 /**
  * @swagger
@@ -43,10 +42,9 @@ const {seller,admin} = require('./../config/')
  *
  *
  */
-router.get('/login',(req,res)=>{
-  
-  res.render('admin')
-})
+router.get('/login', (req, res) => {
+  res.render('admin');
+});
 router.post('/login', adminValidation, adminLogin);
 
 /**
@@ -75,7 +73,12 @@ router.post('/login', adminValidation, adminLogin);
  *
  *
  */
-router.post('/verifySeller', accessTokenVarify,checkRole(admin), approvedAndRejectSellerByAdmin);
+router.post(
+  '/verifySeller',
+  accessTokenVarify,
+  checkRole(admin),
+  approvedAndRejectSellerByAdmin,
+);
 
 /**
  * @swagger
@@ -101,8 +104,7 @@ router.post('/verifySeller', accessTokenVarify,checkRole(admin), approvedAndReje
  *
  *
  */
-router.get('/getAllSeller', accessTokenVarify,checkRole(admin),getAllseller);
-
+router.get('/getAllSeller', accessTokenVarify, checkRole(admin), getAllseller);
 
 /**
  * @swagger
@@ -128,8 +130,7 @@ router.get('/getAllSeller', accessTokenVarify,checkRole(admin),getAllseller);
  *
  *
  */
- router.get('/getAllUser', accessTokenVarify,checkRole(admin),getAllUser);
-
+router.get('/getAllUser', accessTokenVarify, checkRole(admin), getAllUser);
 
 /**
  * @swagger
@@ -157,8 +158,18 @@ router.get('/getAllSeller', accessTokenVarify,checkRole(admin),getAllseller);
  *
  *
  */
- router.delete('/seller/:id', accessTokenVarify,checkRole(admin), deleteSellerByAdmin);
+router.delete(
+  '/seller/:id',
+  accessTokenVarify,
+  checkRole(admin),
+  deleteSellerByAdmin,
+);
 
- router.get('/verifyProduct', accessTokenVarify, checkRole(admin), productApprovedAndRejectByadmin);
+router.get(
+  '/verifyProduct',
+  accessTokenVarify,
+  checkRole(admin),
+  productApprovedAndRejectByadmin,
+);
 
 module.exports = router;

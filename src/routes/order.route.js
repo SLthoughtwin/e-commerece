@@ -2,17 +2,22 @@ const express = require('express');
 const router = express();
 
 const {
-    createOrder,
-    cancelOrder,
-    getAllOrder,
-    getOrderById,
-    changeStatus,
-    fsatDeviveryDate
+  createOrder,
+  cancelOrder,
+  getAllOrder,
+  getOrderById,
+  changeStatus,
+  fsatDeviveryDate,
 } = require('../controller');
-const{accessTokenVarify,checkRole,orderValidation,createOrderValidation} = require('../middleware/')
+const {
+  accessTokenVarify,
+  checkRole,
+  checkIdFormat,
+} = require('../middleware/');
+const{orderValidation,createOrderValidation} = require('../validations')
 
 
-router.get('/fast',accessTokenVarify,checkRole('user'),fsatDeviveryDate)
+router.get('/fast', accessTokenVarify, checkRole('user'), fsatDeviveryDate);
 /**
  * @swagger
  * components:
@@ -42,14 +47,13 @@ router.get('/fast',accessTokenVarify,checkRole('user'),fsatDeviveryDate)
  *                  deliveryDate: 3
  */
 
-
 /**
  * @swagger
  * /v1/order/{id}:
  *   post:
  *     summary: create order
  *     tags: [order]
- *     parameters: 
+ *     parameters:
  *      - in: path
  *        name: id
  *        schema:
@@ -68,13 +72,19 @@ router.get('/fast',accessTokenVarify,checkRole('user'),fsatDeviveryDate)
  *
  *
  */
-router.post('/',accessTokenVarify,checkRole('user'),createOrderValidation,createOrder)
+router.post(
+  '/',
+  accessTokenVarify,
+  checkRole('user'),
+  createOrderValidation,
+  createOrder,
+);
 
 /**
  * @swagger
  * /v1/order/{id}:
  *   delete:
- *     summary: create delete 
+ *     summary: create delete
  *     tags: [order]
  *     parameters:
  *      - in: path
@@ -88,13 +98,19 @@ router.post('/',accessTokenVarify,checkRole('user'),createOrderValidation,create
  *
  *
  */
-router.delete('/:id',accessTokenVarify,checkRole('user'),cancelOrder)
+router.delete(
+  '/:id',
+  accessTokenVarify,
+  checkRole('user'),
+  checkIdFormat,
+  cancelOrder,
+);
 
 /**
  * @swagger
  * /v1/order/{id}:
  *   get:
- *     summary: create delete 
+ *     summary: create delete
  *     tags: [order]
  *     parameters:
  *      - in: path
@@ -106,25 +122,31 @@ router.delete('/:id',accessTokenVarify,checkRole('user'),cancelOrder)
  *         description: delete order successfully
  *
  */
-router.get('/:id',accessTokenVarify,checkRole('user'),getOrderById)
+router.get(
+  '/:id',
+  accessTokenVarify,
+  checkRole('user'),
+  checkIdFormat,
+  getOrderById,
+);
 
 /**
  * @swagger
  * /v1/order:
  *   get:
- *     summary: create delete 
+ *     summary: create delete
  *     tags: [order]
  *     responses:
  *       200:
  *         description: delete order successfully
  */
-router.get('/',accessTokenVarify,checkRole('user'),getAllOrder)
+router.get('/', accessTokenVarify, checkRole('user'), getAllOrder);
 
 /**
  * @swagger
  * /v1/order/{id}:
  *   put:
- *     summary: create delete 
+ *     summary: create delete
  *     tags: [order]
  *     parameters:
  *      - in: path
@@ -136,8 +158,13 @@ router.get('/',accessTokenVarify,checkRole('user'),getAllOrder)
  *         description: change status order successfully
  *
  */
-router.put('/:id',accessTokenVarify,checkRole('seller'),orderValidation,changeStatus)
+router.put(
+  '/:id',
+  accessTokenVarify,
+  checkRole('seller'),
+  checkIdFormat,
+  orderValidation,
+  changeStatus,
+);
 
-
-
-module.exports = router
+module.exports = router;

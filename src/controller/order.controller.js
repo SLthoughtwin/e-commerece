@@ -1,9 +1,7 @@
 const { User, Product, Order, UserAddress } = require('../models/');
-const objectID = require('mongodb').ObjectId;
-// const { uploadfile} = require('../middleware')
+const { createInvoice } = require('../config/createInvoice');
 const ApiError = require('../config/apierror');
-const { sendPdf } = require('../config');
-const { createInvoice } = require("../config/createInvoice");
+const { responseHandler } = require('../config/');
 
 exports.createOrder = async (req, res, next) => {
   try {
@@ -14,16 +12,12 @@ exports.createOrder = async (req, res, next) => {
       let quantity = i.quantity;
       const findProduct = await Product.findOne({ _id: productId });
       if (!findProduct) {
-        return res.status(404).json({
-          statusCode: 400,
-          message: `this product is not available... Id:${productId}`,
-        });
+        return next(
+          new ApiError(404, `this product is not available... Id:${productId}`),
+        );
       }
       if (quantity > findProduct.quantity) {
-        return res.status(404).json({
-          statusCode: 400,
-          message: `out of stoke this Id:${productId}`,
-        });
+        return next(new ApiError(404, `out of stoke this Id:${productId}`));
       }
       const result = await Order.findOneAndUpdate({
         $pull: { products: { productId } },
@@ -39,10 +33,7 @@ exports.createOrder = async (req, res, next) => {
       isActive: true,
     });
     if (!findAddress) {
-      return res.status(404).json({
-        statusCode: 400,
-        message: 'first fillup address details',
-      });
+      return next(new ApiError(400, 'first fillup address details'));
     }
     if (totalPrice < 500) {
       totalPrice += 40;
@@ -63,41 +54,25 @@ exports.createOrder = async (req, res, next) => {
       .populate('userId', 'fullName')
       .populate('addressId')
       .populate('products.productId');
-      // console.log(findUserDetails.products)
-   await createInvoice(findUserDetails);
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'PlaceOrder successfully',
-      data: findUserDetails,
-    });
+    await createInvoice(findUserDetails);
+    return responseHandler(
+      200,
+      'PlaceOrder successfully',
+      res,
+      findUserDetails,
+    );
   } catch (error) {
-    console.log(error);
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400, error.message));
   }
 };
-exports.cancelOrder = async (req, res) => {
+exports.cancelOrder = async (req, res, next) => {
   try {
-    if (objectID.isValid(req.params.id) === false) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'id must be correct format',
-      });
-    }
     const findOrder = await Order.findOne({ _id: req.params.id });
     if (!findOrder) {
-      return res.status(200).json({
-        statusCode: 200,
-        message: 'you do not have any order to cancel',
-      });
+      return next(new ApiError(404, 'you do not have any order to cancel'));
     }
     if (findOrder.status !== 'ordered' || findOrder.status !== 'packed') {
-      return res.status(200).json({
-        statusCode: 200,
-        message: `you can't  cancel your order`,
-      });
+      return next(new ApiError(400, `you can't  cancel your order`));
     }
     for (i of findOrder.products) {
       let quantity = i.quantity;
@@ -108,100 +83,56 @@ exports.cancelOrder = async (req, res) => {
     }
     findOrder.status = 'cancelled';
     await findOrder.save();
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'Order cancel successfully',
-      data: findOrder,
-    });
+    return responseHandler(200, 'Order cancel successfully', res, findOrder);
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400, error.message));
   }
 };
-exports.getAllOrder = async (req, res) => {
+exports.getAllOrder = async (req, res, next) => {
   try {
     const findOrder = await Order.findOne({
       userId: req.userid,
     });
     if (!findOrder) {
-      return res.status(200).json({
-        statusCode: 200,
-        message: "you don't have any order yet",
-      });
+      return next(new ApiError(404, "you don't have any order yet"));
     }
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'getOrder successfully',
-      data: findOrder,
-    });
+    return responseHandler(200, 'getOrder successfully', res, findOrder);
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400, error.message));
   }
 };
-exports.getOrderById = async (req, res) => {
+exports.getOrderById = async (req, res, next) => {
   try {
-    if (objectID.isValid(req.params.id) === false) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'id must be correct format',
-      });
-    }
     const findOrder = await Order.findOne({
       _id: req.params.id,
       status: 'ordered',
     });
     if (!findOrder) {
-      return res.status(200).json({
-        statusCode: 200,
-        message: "you don't have any order yet",
-      });
+      return next(new ApiError(404, `you don't have any order yet`));
     }
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'getOrder successfully',
-      data: findOrder,
-    });
+    return responseHandler(200, 'getOrder successfully', res, findOrder);
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 401,
-      message: error.message,
-    });
+    return next(new ApiError(400, error.message));
   }
 };
-exports.changeStatus = async (req, res) => {
+exports.changeStatus = async (req, res, next) => {
   try {
-    if (objectID.isValid(req.params.id) === false) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'id must be correct format',
-      });
-    }
     const findOrder = await Order.findOne({
       _id: req.params.id,
       status: 'ordered',
     });
     if (!findOrder) {
-      return res.status(200).json({
-        statusCode: 200,
-        message: "you don't have any order yet",
-      });
+      return next(new ApiError(404, `you don't have any order yet`));
     }
     findOrder.status = req.body.status;
-    return res.status(200).json({
-      statusCode: 200,
-      message: `${req.body.status} successfully`,
-      data: findOrder,
-    });
+    return responseHandler(
+      200,
+      `${req.body.status} successfully`,
+      res,
+      findOrder,
+    );
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400, error.message));
   }
 };
 exports.fsatDeviveryDate = async (req, res) => {
@@ -209,39 +140,21 @@ exports.fsatDeviveryDate = async (req, res) => {
     const { deliveryMode } = req.query;
     let date;
     if (!deliveryMode) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: 'deliveryMode not find in query',
-      });
+      return next(new ApiError(404, 'deliveryMode not find in query'));
     }
     if (deliveryMode === 'fast') {
       date = new Date(+new Date() + 1 * 24 * 60 * 60 * 1000);
-      return res.status(404).json({
-        statusCode: 200,
-        message: 'fastDelivery',
-        date: date,
-      });
+      return responseHandler(200, 'fastDelivery', res, date);
     }
-
     if (deliveryMode === 'standard') {
       const random = Math.floor(Math.random() * (5 - 3)) + 3;
       date = new Date(+new Date() + random * 24 * 60 * 60 * 1000);
-      return res.status(404).json({
-        statusCode: 200,
-        message: 'standardDelivery',
-        date: date,
-      });
+      return responseHandler(200, 'standardDelivery', res, date);
     }
-    return res.status(404).json({
-      statusCode: 200,
-      message: 'query can have standard or fast deliveryMode',
-      date: date,
-    });
+    return next(
+      new ApiError(400, 'query can have standard or fast deliveryMode'),
+    );
   } catch (error) {
-    console.log(error);
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400, error.message));
   }
 };

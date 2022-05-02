@@ -1,7 +1,9 @@
 const { Product, Order, Review } = require('../models/');
 const { deleteImageFromCloud, uploadFileToCloud } = require('../middleware');
+const ApiError = require('../config/apierror');
+const { responseHandler } = require('../config/');
 
-exports.createReview = async (req, res) => {
+exports.createReview = async (req, res, next) => {
   try {
     const { comments, rating, productId: _id } = req.body;
     const findOrder = await Order.findOne({
@@ -10,27 +12,20 @@ exports.createReview = async (req, res) => {
       status: 'delivered',
     });
     if (!findOrder) {
-      return res.status(404).json({
-        statusCode: 400,
-        message: 'first buy a product then comment',
-      });
+      return next(new ApiError(400, 'first buy a product then comment'));
     }
-
-    const findProduct = await Product.findOne({ _id }).populate('review',"comments.rating")
+    const findProduct = await Product.findOne({ _id }).populate(
+      'review',
+      'comments.rating',
+    );
     if (!findProduct) {
-      return res.status(404).json({
-        statusCode: 400,
-        message: 'this product is not available',
-      });
+      return next(new ApiError(404, 'this product is not available'));
     }
     const findReview = await Review.findOne({ userId: req.userid });
     if (findReview) {
-      return res.status(200).json({
-        statusCode: 200,
-        message: 'you have already given review',
-      });
+      return next(new ApiError(400, 'you have already given review'));
     }
-    const imageArray = await  uploadFileToCloud(req,"review")
+    const imageArray = await uploadFileToCloud(req, 'review');
     const review = await Review.create({
       productId: _id,
       comments: [
@@ -41,110 +36,73 @@ exports.createReview = async (req, res) => {
         },
       ],
     });
-    let totalReview = 0
-    findProduct.review.map((reviewRating)=>{
-     reviewRating.comments.find((rate)=> totalReview+=rate.rating)
-    })
-    const reviewRating = (totalReview+review.comments[0].rating)/(findProduct.review.length+1)
-    findProduct.review.push(review.id)
-    findProduct.averageRating = reviewRating
-    await findProduct.save()
+    let totalReview = 0;
+    findProduct.review.map((reviewRating) => {
+      reviewRating.comments.find((rate) => (totalReview += rate.rating));
+    });
+    const reviewRating =
+      (totalReview + review.comments[0].rating) /
+      (findProduct.review.length + 1);
+    findProduct.review.push(review.id);
+    findProduct.averageRating = reviewRating;
+    await findProduct.save();
     if (imageArray.length > 0) {
       (review.image = imageArray), await review.save();
     }
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'create review successfully',
-      data: review,
-    });
+    return responseHandler(200, 'create review successfully', res, review);
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400, error.message));
   }
 };
-exports.deleteReview = async (req, res) => {
+exports.deleteReview = async (req, res, next) => {
   try {
-    const {id:_id} = req.params
-    const findReview = await Review.findOneAndDelete({ _id});
+    const { id: _id } = req.params;
+    const findReview = await Review.findOneAndDelete({ _id });
     if (!findReview) {
-      return res.status(200).json({
-        statusCode: 200,
-        message: "you don't have any Review to delete",
-      });
+      return next(new ApiError(400, `you don't have any Review to delete`));
     }
     await findReview.image.map((x) => {
       deleteImageFromCloud(x.cloud_public_id);
     });
-
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'delete Review successfully',
-      data: findReview,
-    });
+    return responseHandler(200, 'delete Review successfully', res, findReview);
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400, error.message));
   }
 };
-exports.editReview = async (req, res) => {
+exports.editReview = async (req, res, next) => {
   try {
-    const {comments,rating,reviewId:_id} =  req.body
+    const { comments, rating, reviewId: _id } = req.body;
     const findReview = await Review.findOne({ _id });
     if (!findReview) {
-      return res.status(200).json({
-        statusCode: 200,
-        message: "you don't have any Review to edit",
-      });
+      return next(new ApiError(404, `you don't have any Review to edit`));
     }
-     findReview.image.map((x) => {
-        deleteImageFromCloud(x.cloud_public_id);
-        findReview.image = []
-
+    findReview.image.map((x) => {
+      deleteImageFromCloud(x.cloud_public_id);
+      findReview.image = [];
     });
-    const imageArray = await  uploadFileToCloud(req,"review")
-
-    if(imageArray.length > 0){
-      findReview.image = imageArray
+    const imageArray = await uploadFileToCloud(req, 'review');
+    if (imageArray.length > 0) {
+      findReview.image = imageArray;
     }
-    if(comments){
-      findReview.comments.content = comments
+    if (comments) {
+      findReview.comments.content = comments;
     }
-   if(rating){
-    findReview.comments.rating = rating
+    if (rating) {
+      findReview.comments.rating = rating;
     }
-    await findReview.save()
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'edit Review successfully',
-      data: findReview,
-    });
+    await findReview.save();
+    return responseHandler(200, 'edit Review successfully', res, findReview);
   } catch (error) {
-    console.log(error)
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400, error.message));
   }
 };
-exports.getReview = async (req, res) => {
+exports.getReview = async (req, res, next) => {
   try {
     const findReview = await Review.findOne({ userId: req.userid })
       .populate('productId', 'title')
       .populate('comments.userId', 'fullName');
-
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'find review successfully',
-      data: findReview,
-    });
+    return responseHandler(200, 'find review successfully', res, findReview);
   } catch (error) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: error.message,
-    });
+    return next(new ApiError(400, error.message));
   }
 };
